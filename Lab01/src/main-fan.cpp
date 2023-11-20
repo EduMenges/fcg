@@ -8,18 +8,9 @@
 //                   LABORATÓRIO 1
 //
 
-// Arquivos "headers" padrões de C podem ser incluídos em um
-// programa C++, sendo necessário somente adicionar o caractere
-// "c" antes de seu nome, e remover o sufixo ".h". Exemplo:
-//    #include <stdio.h> // Em C
-//  vira
-//    #include <cstdio> // Em C++
-//
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
-
-// Headers abaixo são específicos de C++
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -28,54 +19,95 @@
 #include <glad/glad.h>   // Criação de contexto OpenGL 3.3
 #include <GLFW/glfw3.h>  // Criação de janelas do sistema operacional
 
-GLenum glCheckError_(const char* file, int line)
-{
-    GLenum errorCode;
-    while ((errorCode = glGetError()) != GL_NO_ERROR)
-    {
-        const char* error;
-        switch (errorCode)
-        {
-        case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
-        case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
-        case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
-        case GL_STACK_OVERFLOW:                error = "STACK_OVERFLOW"; break;
-        case GL_STACK_UNDERFLOW:               error = "STACK_UNDERFLOW"; break;
-        case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
-        case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
 
-        default:                               error = "UNKNOWN"; break;
-        }
-        fprintf(stderr, "ERROR: OpenGL \"%s\" in file \"%s\" (line %d)\n", error, file, line);
-    }
-    return errorCode;
+#include <array>
+#include <numeric>
+
+#ifndef M_PI
+#define M_PI       3.14159265358979323846f
+#endif
+
+static const size_t kCircleSides = 16U;
+static const float kCircleRadius = 0.7f;
+
+template<typename T>
+GLfloat degreesToRadians(T degrees) {
+    return static_cast<T>(degrees) * M_PI / 180.0f;
 }
+
+constexpr size_t sizeForCircle(size_t sides) noexcept { return 4 * (sides + 1); }
+
+template<size_t sides>
+std::array<GLfloat, sizeForCircle(sides)> circleCoefficients(GLfloat radius) {
+    std::array<GLfloat, sizeForCircle(sides)> NDC_coefficients{0.0f, 0.0f, 0.0f, 1.0f};
+
+    const GLfloat kIncrementPerIteration = static_cast<GLfloat>(360) / sides;
+    for (size_t i = 1; i < sides + 1; ++i) {
+        GLfloat current_degrees = static_cast<GLfloat>(i - 1) * kIncrementPerIteration;
+        GLfloat current_radians = degreesToRadians(current_degrees);
+        // Adjust X
+        NDC_coefficients[i * 4 + 0] = std::cos(current_radians) * radius;
+        // Adjust Y
+        NDC_coefficients[i * 4 + 1] = std::sin(current_radians) * radius;
+        // Adjust Z
+        NDC_coefficients[i * 4 + 2] = 0.0f;
+        // Adjust W
+        NDC_coefficients[i * 4 + 3] = 1.0f;
+    }
+
+    return NDC_coefficients;
+}
+
+template<size_t sides>
+std::array<GLfloat, sizeForCircle(sides)> inToOutColored() {
+    std::array<GLfloat, sizeForCircle(sides)> colors{1.0f, 0.0f, 0.0f, 1.0f};
+
+    for (size_t i = 1; i < sides + 1; ++i) {
+        colors[i * 4 + 0] = 0.0f; // R
+        colors[i * 4 + 1] = 0.0f; // G
+        colors[i * 4 + 2] = 1.0f; // B
+        colors[i * 4 + 3] = 1.0f; // A
+    }
+
+    return colors;
+}
+
+template<size_t sides>
+std::array<GLubyte, sides + 2> indexesForCircle() {
+    std::array<GLubyte, sides + 2> res;
+
+    std::iota(res.begin(), res.end() - 1, 0);
+    res.back() = 1;
+
+    return res;
+}
+
 
 // Declaração de várias funções utilizadas em main().  Essas estão definidas
 // logo após a definição de main() neste arquivo.
 GLuint BuildTriangles(); // Constrói triângulos para renderização
 void LoadShadersFromFiles(); // Carrega os shaders de vértice e fragmento, criando um programa de GPU
-GLuint LoadShader_Vertex(const char* filename);   // Carrega um vertex shader
-GLuint LoadShader_Fragment(const char* filename); // Carrega um fragment shader
-void LoadShader(const char* filename, GLuint shader_id); // Função utilizada pelas duas acima
+GLuint LoadShader_Vertex(const char *filename);   // Carrega um vertex shader
+GLuint LoadShader_Fragment(const char *filename); // Carrega um fragment shader
+void LoadShader(const char *filename, GLuint shader_id); // Função utilizada pelas duas acima
 GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id); // Cria um programa de GPU
 
 // Funções callback para comunicação com o sistema operacional e interação do
 // usuário. Veja mais comentários nas definições das mesmas, abaixo.
-void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
-void ErrorCallback(int error, const char* description);
-void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod);
+void FramebufferSizeCallback(GLFWwindow *window, int width, int height);
+
+void ErrorCallback(int error, const char *description);
+
+void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod);
 
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
 GLuint g_GpuProgramID = 0;
 
-int main()
-{
+int main() {
     // Inicializamos a biblioteca GLFW, utilizada para criar uma janela do
     // sistema operacional, onde poderemos renderizar com OpenGL.
     int success = glfwInit();
-    if (!success)
-    {
+    if (!success) {
         fprintf(stderr, "ERROR: glfwInit() failed.\n");
         std::exit(EXIT_FAILURE);
     }
@@ -87,20 +119,19 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
-    #ifdef __APPLE__
+#ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    #endif
+#endif
 
-    // Pedimos para utilizar o perfil "core", isto é, utilizaremos somente as
-    // funções modernas de OpenGL.
+    /* Pedimos para utilizar o perfil "core", isto é, utilizaremos somente as
+    funções modernas de OpenGL. */
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Criamos uma janela do sistema operacional, com 500 colunas e 500 linhas
     // de pixels, e com título "INF01047 ...".
-    GLFWwindow* window;
-    window = glfwCreateWindow(500, 500, "INF01047 - Seu Cartao - Seu Nome", NULL, NULL);
-    if (!window)
-    {
+    GLFWwindow *window;
+    window = glfwCreateWindow(500, 500, "INF01047 - 00333482 - Eduardo Menges Mattje", nullptr, nullptr);
+    if (!window) {
         glfwTerminate();
         fprintf(stderr, "ERROR: glfwCreateWindow() failed.\n");
         std::exit(EXIT_FAILURE);
@@ -123,9 +154,9 @@ int main()
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 
     // Imprimimos no terminal informações sobre a GPU do sistema
-    const GLubyte *vendor      = glGetString(GL_VENDOR);
-    const GLubyte *renderer    = glGetString(GL_RENDERER);
-    const GLubyte *glversion   = glGetString(GL_VERSION);
+    const GLubyte *vendor = glGetString(GL_VENDOR);
+    const GLubyte *renderer = glGetString(GL_RENDERER);
+    const GLubyte *glversion = glGetString(GL_VERSION);
     const GLubyte *glslversion = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
     printf("GPU: %s, %s, OpenGL %s, GLSL %s\n", vendor, renderer, glversion, glslversion);
@@ -139,8 +170,7 @@ int main()
     GLuint vertex_array_object_id = BuildTriangles();
 
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)) {
         // Aqui executamos as operações de renderização
 
         // Definimos a cor do "fundo" do framebuffer como branco.  Tal cor é
@@ -172,7 +202,7 @@ int main()
         //                |          |  |                 +--- Vértices começam em indices[0] (veja função BuildTriangles()).
         //                |          |  |                 |
         //                V          V  V                 V
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, 0);
+        glDrawElements(GL_TRIANGLE_FAN, kCircleSides + 2, GL_UNSIGNED_BYTE, nullptr);
 
         // "Desligamos" o VAO, evitando assim que operações posteriores venham a
         // alterar o mesmo. Isso evita bugs.
@@ -201,8 +231,7 @@ int main()
 }
 
 // Constrói triângulos para futura renderização
-GLuint BuildTriangles()
-{
+GLuint BuildTriangles() {
     // Primeiro, definimos os atributos de cada vértice.
 
     // A posição de cada vértice é definida por coeficientes em "normalized
@@ -216,13 +245,7 @@ GLuint BuildTriangles()
     //
     // Este vetor "NDC_coefficients" define a GEOMETRIA (veja slides 103-110 do documento Aula_04_Modelagem_Geometrica_3D.pdf).
     //
-    GLfloat NDC_coefficients[] = {
-    //    X      Y     Z     W
-        -0.5f, -0.5f, 0.0f, 1.0f,
-         0.5f, -0.5f, 0.0f, 1.0f,
-         0.0f,  0.5f, 0.0f, 1.0f,
-         0.5f,  0.5f, 0.0f, 1.0f
-    };
+    auto NDC_coefficients = circleCoefficients<kCircleSides>(kCircleRadius);
 
     // Criamos o identificador (ID) de um Vertex Buffer Object (VBO).  Um VBO é
     // um buffer de memória que irá conter os valores de um certo atributo de
@@ -233,7 +256,7 @@ GLuint BuildTriangles()
     GLuint VBO_NDC_coefficients_id;
     glGenBuffers(1, &VBO_NDC_coefficients_id);
 
-    // Criamos o identificador (ID) de um Vertex Array Object (VAO).  Um VAO
+    // Criamos o identificador (ID) de um Vertex Array Object (VAO). Um VAO
     // contém a definição de vários atributos de um certo conjunto de vértices;
     // isto é, um VAO irá conter ponteiros para vários VBOs.
     GLuint vertex_array_object_id;
@@ -260,14 +283,14 @@ GLuint BuildTriangles()
     //
     //            glBufferData()  ==  malloc() do C  ==  new do C++.
     //
-    glBufferData(GL_ARRAY_BUFFER, sizeof(NDC_coefficients), NULL, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * NDC_coefficients.size(), nullptr, GL_STATIC_DRAW);
 
     // Finalmente, copiamos os valores do array NDC_coefficients para dentro do
     // VBO "ligado" acima.  Pense que:
     //
     //            glBufferSubData()  ==  memcpy() do C.
     //
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(NDC_coefficients), NDC_coefficients);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * NDC_coefficients.size(), NDC_coefficients.data());
 
     // Precisamos então informar um índice de "local" ("location"), o qual será
     // utilizado no shader "shader_vertex.glsl" para acessar os valores
@@ -281,8 +304,8 @@ GLuint BuildTriangles()
     // está dentro do VAO "ligado" acima por glBindVertexArray().
     // Veja https://www.khronos.org/opengl/wiki/Vertex_Specification#Vertex_Buffer_Object
     GLuint location = 0; // "(location = 0)" em "shader_vertex.glsl"
-    GLint  number_of_dimensions = 4; // vec4 em "shader_vertex.glsl"
-    glVertexAttribPointer(location, number_of_dimensions, GL_FLOAT, GL_FALSE, 0, 0);
+    GLint number_of_dimensions = 4; // vec4 em "shader_vertex.glsl"
+    glVertexAttribPointer(location, number_of_dimensions, GL_FLOAT, GL_FALSE, 0, nullptr);
 
     // "Ativamos" os atributos. Informamos que os atributos com índice de local
     // definido acima, na variável "location", deve ser utilizado durante o
@@ -298,21 +321,16 @@ GLuint BuildTriangles()
     // Tal cor é definida como coeficientes RGBA: Red, Green, Blue, Alpha;
     // isto é: Vermelho, Verde, Azul, Alpha (valor de transparência).
     // Conversaremos sobre sistemas de cores nas aulas de Modelos de Iluminação.
-    GLfloat color_coefficients[] = {
-    //  R     G     B     A
-        1.0f, 0.0f, 0.0f, 1.0f,
-        0.0f, 1.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f, 1.0f,
-        0.0f, 1.0f, 1.0f, 1.0f
-    };
+    auto color_coefficients = inToOutColored<kCircleSides>();
     GLuint VBO_color_coefficients_id;
     glGenBuffers(1, &VBO_color_coefficients_id);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_color_coefficients_id);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(color_coefficients), NULL, GL_STATIC_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(color_coefficients), color_coefficients);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * color_coefficients.size(), nullptr, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * color_coefficients.size(), color_coefficients.data());
+
     location = 1; // "(location = 1)" em "shader_vertex.glsl"
     number_of_dimensions = 4; // vec4 em "shader_vertex.glsl"
-    glVertexAttribPointer(location, number_of_dimensions, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(location, number_of_dimensions, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(location);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -323,7 +341,7 @@ GLuint BuildTriangles()
     //
     // Este vetor "indices" define a TOPOLOGIA (veja slides 103-110 do documento Aula_04_Modelagem_Geometrica_3D.pdf).
     //
-    GLubyte indices[] = { 0,1,2, 2,1,3 }; // GLubyte: valores entre 0 e 255 (8 bits sem sinal).
+    auto indices = indexesForCircle<kCircleSides>();
 
     // Criamos um buffer OpenGL para armazenar os índices acima
     GLuint indices_id;
@@ -333,10 +351,10 @@ GLuint BuildTriangles()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_id);
 
     // Alocamos memória para o buffer.
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), NULL, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLubyte) * indices.size(), nullptr, GL_STATIC_DRAW);
 
     // Copiamos os valores do array indices[] para dentro do buffer.
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(indices), indices);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(GLubyte) * indices.size(), indices.data());
 
     // NÃO faça a chamada abaixo! Diferente de um VBO (GL_ARRAY_BUFFER), um
     // array de índices (GL_ELEMENT_ARRAY_BUFFER) não pode ser "desligado",
@@ -355,8 +373,7 @@ GLuint BuildTriangles()
 }
 
 // Carrega um Vertex Shader de um arquivo GLSL. Veja definição de LoadShader() abaixo.
-GLuint LoadShader_Vertex(const char* filename)
-{
+GLuint LoadShader_Vertex(const char *filename) {
     // Criamos um identificador (ID) para este shader, informando que o mesmo
     // será aplicado nos vértices.
     GLuint vertex_shader_id = glCreateShader(GL_VERTEX_SHADER);
@@ -369,8 +386,7 @@ GLuint LoadShader_Vertex(const char* filename)
 }
 
 // Carrega um Fragment Shader de um arquivo GLSL . Veja definição de LoadShader() abaixo.
-GLuint LoadShader_Fragment(const char* filename)
-{
+GLuint LoadShader_Fragment(const char *filename) {
     // Criamos um identificador (ID) para este shader, informando que o mesmo
     // será aplicado nos fragmentos.
     GLuint fragment_shader_id = glCreateShader(GL_FRAGMENT_SHADER);
@@ -384,8 +400,7 @@ GLuint LoadShader_Fragment(const char* filename)
 
 // Função auxilar, utilizada pelas duas funções acima. Carrega código de GPU de
 // um arquivo GLSL e faz sua compilação.
-void LoadShader(const char* filename, GLuint shader_id)
-{
+void LoadShader(const char *filename, GLuint shader_id) {
     // Lemos o arquivo de texto indicado pela variável "filename"
     // e colocamos seu conteúdo em memória, apontado pela variável
     // "shader_string".
@@ -393,15 +408,16 @@ void LoadShader(const char* filename, GLuint shader_id)
     try {
         file.exceptions(std::ifstream::failbit);
         file.open(filename);
-    } catch ( std::exception& e ) {
+    }
+    catch (std::exception &e) {
         fprintf(stderr, "ERROR: Cannot open file \"%s\".\n", filename);
         std::exit(EXIT_FAILURE);
     }
     std::stringstream shader;
     shader << file.rdbuf();
     std::string str = shader.str();
-    const GLchar* shader_string = str.c_str();
-    const GLint   shader_string_length = static_cast<GLint>( str.length() );
+    const GLchar *shader_string = str.c_str();
+    const auto shader_string_length = static_cast<GLint>(str.length());
 
     // Define o código do shader GLSL, contido na string "shader_string"
     glShaderSource(shader_id, 1, &shader_string, &shader_string_length);
@@ -418,25 +434,21 @@ void LoadShader(const char* filename, GLuint shader_id)
 
     // Alocamos memória para guardar o log de compilação.
     // A chamada "new" em C++ é equivalente ao "malloc()" do C.
-    GLchar* log = new GLchar[log_length];
+    auto *log = new GLchar[log_length];
     glGetShaderInfoLog(shader_id, log_length, &log_length, log);
 
     // Imprime no terminal qualquer erro ou "warning" de compilação
-    if ( log_length != 0 )
-    {
-        std::string  output;
+    if (log_length != 0) {
+        std::string output;
 
-        if ( !compiled_ok )
-        {
+        if (!compiled_ok) {
             output += "ERROR: OpenGL compilation of \"";
             output += filename;
             output += "\" failed.\n";
             output += "== Start of compilation log\n";
             output += log;
             output += "== End of compilation log\n";
-        }
-        else
-        {
+        } else {
             output += "WARNING: OpenGL compilation of \"";
             output += filename;
             output += "\".\n";
@@ -449,14 +461,13 @@ void LoadShader(const char* filename, GLuint shader_id)
     }
 
     // A chamada "delete" em C++ é equivalente ao "free()" do C
-    delete [] log;
+    delete[] log;
 }
 
 // Função que carrega os shaders de vértices e de fragmentos que serão
 // utilizados para renderização. Veja slides 180-200 do documento Aula_03_Rendering_Pipeline_Grafico.pdf.
 //
-void LoadShadersFromFiles()
-{
+void LoadShadersFromFiles() {
     // Note que o caminho para os arquivos "shader_vertex.glsl" e
     // "shader_fragment.glsl" estão fixados, sendo que assumimos a existência
     // da seguinte estrutura no sistema de arquivos:
@@ -479,7 +490,7 @@ void LoadShadersFromFiles()
     GLuint fragment_shader_id = LoadShader_Fragment("../../src/shader_fragment.glsl");
 
     // Deletamos o programa de GPU anterior, caso ele exista.
-    if ( g_GpuProgramID != 0 )
+    if (g_GpuProgramID != 0)
         glDeleteProgram(g_GpuProgramID);
 
     // Criamos um programa de GPU utilizando os shaders carregados acima.
@@ -488,8 +499,7 @@ void LoadShadersFromFiles()
 
 // Esta função cria um programa de GPU, o qual contém obrigatoriamente um
 // Vertex Shader e um Fragment Shader.
-GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id)
-{
+GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id) {
     // Criamos um identificador (ID) para este programa de GPU
     GLuint program_id = glCreateProgram();
 
@@ -505,14 +515,12 @@ GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id)
     glGetProgramiv(program_id, GL_LINK_STATUS, &linked_ok);
 
     // Imprime no terminal qualquer erro de linkagem
-    if ( linked_ok == GL_FALSE )
-    {
+    if (linked_ok == GL_FALSE) {
         GLint log_length = 0;
         glGetProgramiv(program_id, GL_INFO_LOG_LENGTH, &log_length);
 
         // Alocamos memória para guardar o log de compilação.
-        // A chamada "new" em C++ é equivalente ao "malloc()" do C.
-        GLchar* log = new GLchar[log_length];
+        auto *log = new GLchar[log_length];
 
         glGetProgramInfoLog(program_id, log_length, &log_length, log);
 
@@ -523,8 +531,7 @@ GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id)
         output += log;
         output += "== End of link log\n";
 
-        // A chamada "delete" em C++ é equivalente ao "free()" do C
-        delete [] log;
+        delete[] log;
 
         fprintf(stderr, "%s", output.c_str());
     }
@@ -536,8 +543,7 @@ GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id)
 // Definição da função que será chamada sempre que a janela do sistema
 // operacional for redimensionada, por consequência alterando o tamanho do
 // "framebuffer" (região de memória onde são armazenados os pixels da imagem).
-void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
-{
+void FramebufferSizeCallback(GLFWwindow *window, int width, int height) {
     // Indicamos que queremos renderizar em toda região do framebuffer. A
     // função "glViewport" define o mapeamento das "normalized device
     // coordinates" (NDC) para "pixel coordinates".  Essa é a operação de
@@ -547,8 +553,7 @@ void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 
 // Definição da função que será chamada sempre que o usuário pressionar alguma
 // tecla do teclado. Veja http://www.glfw.org/docs/latest/input_guide.html#input_key
-void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
-{
+void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod) {
     // ===================
     // Não modifique este loop! Ele é utilizando para correção automatizada dos
     // laboratórios. Deve ser sempre o primeiro comando desta função KeyCallback().
@@ -563,9 +568,8 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
 }
 
 // Definimos o callback para impressão de erros da GLFW no terminal
-void ErrorCallback(int error, const char* description)
-{
-    fprintf(stderr, "ERROR: GLFW: %s\n", description);
+void ErrorCallback(int error, const char *description) {
+    (void) fprintf(stderr, "ERROR %i: GLFW: %s\n", error, description);
 }
 
 // vim: set spell spelllang=pt_br :
