@@ -20,29 +20,38 @@
 #include <GLFW/glfw3.h>  // Criação de janelas do sistema operacional
 
 #include <array>
-#include <numeric>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
 #endif
 
-static const size_t kCircleSides  = 16U;
-static const float  kCircleRadius = 0.7f;
+static const size_t  kDonutSides     = 16U;
+static const GLfloat kExternalRadius = 0.7f;
+static const GLfloat kInternalRadius = 0.5f;
+
+template <typename T, size_t N>
+constexpr size_t totalSize(const std::array<T, N> &collection) {
+    return collection.size() * sizeof(T);
+}
 
 template <typename T>
-GLfloat degreesToRadians(T degrees) {
+constexpr GLfloat degreesToRadians(T degrees) noexcept {
     return static_cast<T>(degrees) * M_PI / 180.0f;
 }
 
-constexpr size_t sizeForCircle(size_t sides) noexcept { return 4 * (sides + 1); }
+constexpr size_t sizeForCircle(size_t sides) noexcept { return 4 * sides; }
+
+constexpr size_t size(size_t sides) noexcept { return sizeForCircle(sides) * 2; }
+
+constexpr size_t indexAmount(size_t sides) noexcept { return (sides + 1) * 2; }
 
 template <size_t sides>
 std::array<GLfloat, sizeForCircle(sides)> circleCoefficients(GLfloat radius) {
-    std::array<GLfloat, sizeForCircle(sides)> NDC_coefficients{0.0f, 0.0f, 0.0f, 1.0f};
+    std::array<GLfloat, sizeForCircle(sides)> NDC_coefficients{};
 
     const GLfloat kIncrementPerIteration = static_cast<GLfloat>(360) / sides;
-    for (size_t i = 1; i < sides + 1; ++i) {
-        GLfloat current_degrees = static_cast<GLfloat>(i - 1) * kIncrementPerIteration;
+    for (size_t i = 0; i < sides; ++i) {
+        GLfloat current_degrees = static_cast<GLfloat>(i) * kIncrementPerIteration;
         GLfloat current_radians = degreesToRadians(current_degrees);
         // Adjust X
         NDC_coefficients[i * 4 + 0] = std::cos(current_radians) * radius;
@@ -58,13 +67,33 @@ std::array<GLfloat, sizeForCircle(sides)> circleCoefficients(GLfloat radius) {
 }
 
 template <size_t sides>
-std::array<GLfloat, sizeForCircle(sides)> inToOutColored() {
-    std::array<GLfloat, sizeForCircle(sides)> colors{1.0f, 0.0f, 0.0f, 1.0f};
+std::array<GLfloat, size(sides)> donutCoefficients(GLfloat internal_radius, GLfloat external_radius) {
+    std::array<GLfloat, size(sides)> result{};
 
-    for (size_t i = 1; i < sides + 1; ++i) {
+    std::array<GLfloat, sizeForCircle(sides)> externalCircle = circleCoefficients<sides>(external_radius);
+    std::array<GLfloat, sizeForCircle(sides)> internalCircle = circleCoefficients<sides>(internal_radius);
+
+    std::copy(externalCircle.cbegin(), externalCircle.cend(), result.begin());
+    std::copy(internalCircle.cbegin(), internalCircle.cend(), result.begin() + sizeForCircle(sides));
+
+    return result;
+}
+
+template <size_t sides>
+std::array<GLfloat, size(sides)> donutColors() {
+    std::array<GLfloat, size(sides)> colors{};
+
+    for (size_t i = 0; i < sides; ++i) {
         colors[i * 4 + 0] = 0.0f;  // R
         colors[i * 4 + 1] = 0.0f;  // G
         colors[i * 4 + 2] = 1.0f;  // B
+        colors[i * 4 + 3] = 1.0f;  // A
+    }
+
+    for (size_t i = sides; i < sides * 2; ++i) {
+        colors[i * 4 + 0] = 1.0f;  // R
+        colors[i * 4 + 1] = 0.0f;  // G
+        colors[i * 4 + 2] = 0.0f;  // B
         colors[i * 4 + 3] = 1.0f;  // A
     }
 
@@ -72,19 +101,27 @@ std::array<GLfloat, sizeForCircle(sides)> inToOutColored() {
 }
 
 template <size_t sides>
-std::array<GLubyte, sides + 2> indexesForCircle() {
-    std::array<GLubyte, sides + 2> res{};
+constexpr std::array<GLubyte, indexAmount(sides)> donutIndexes() {
+    std::array<GLubyte, indexAmount(sides)> res{};
 
-    std::iota(res.begin(), res.end() - 1, 0);
-    res.back() = 1;
+    GLubyte j = 0;
+    size_t  i = 0;
+
+    for (; i < (sides) * 2; i += 2, ++j) {
+        res[i]     = j;
+        res[i + 1] = static_cast<GLubyte>(sides + j);
+    }
+
+    res[i]     = 0;
+    res[i + 1] = sides;
 
     return res;
 }
 
 // Declaração de várias funções utilizadas em main().  Essas estão definidas
 // logo após a definição de main() neste arquivo.
-GLuint BuildTriangles();        // Constrói triângulos para renderização
-void   LoadShadersFromFiles();  // Carrega os shaders de vértice e fragmento,
+GLuint BuildTrianglesForDigitZERO();  // Constrói triângulos para renderização
+void   LoadShadersFromFiles();        // Carrega os shaders de vértice e fragmento,
 // criando um programa de GPU
 GLuint LoadShader_Vertex(const char *filename);    // Carrega um vertex shader
 GLuint LoadShader_Fragment(const char *filename);  // Carrega um fragment shader
@@ -170,7 +207,7 @@ int main() {
     LoadShadersFromFiles();
 
     // Construímos a representação de um triângulo
-    GLuint vertex_array_object_id = BuildTriangles();
+    GLuint vertex_array_object_id = BuildTrianglesForDigitZERO();
 
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a
     // janela
@@ -194,9 +231,8 @@ int main() {
         glUseProgram(g_GpuProgramID);
 
         // "Ligamos" o VAO. Informamos que queremos utilizar os atributos de
-        // vértices apontados pelo VAO criado pela função
-        // BuildTrianglesForDigitZERO(). Veja comentários detalhados dentro da
-        // definição de BuildTrianglesForDigitZERO().
+        // vértices apontados pelo VAO criado pela função BuildTrianglesForDigitZERO(). Veja
+        // comentários detalhados dentro da definição de BuildTrianglesForDigitZERO().
         glBindVertexArray(vertex_array_object_id);
 
         // Pedimos para a GPU rasterizar os vértices apontados pelo VAO como
@@ -205,12 +241,12 @@ int main() {
         //                +--- Veja slides 182-188 do documento
         //                Aula_04_Modelagem_Geometrica_3D.pdf. |          +--- O
         //                array "indices[]" contém 6 índices (veja função
-        //                BuildTrianglesForDigitZERO()). |          |  +--- Os
-        //                índices são do tipo "GLubyte" (8 bits sem sinal) | | |
+        //                BuildTrianglesForDigitZERO()). |          |  +--- Os índices são
+        //                do tipo "GLubyte" (8 bits sem sinal) |          |  |
         //                +--- Vértices começam em indices[0] (veja função
-        //                BuildTrianglesForDigitZERO()). |          |  | | V V
-        //                V                 V
-        glDrawElements(GL_TRIANGLE_FAN, kCircleSides + 2, GL_UNSIGNED_BYTE, nullptr);
+        //                BuildTrianglesForDigitZERO()). |          |  |                 |
+        //                V          V  V                 V
+        glDrawElements(GL_TRIANGLE_STRIP, indexAmount(kDonutSides), GL_UNSIGNED_BYTE, nullptr);
 
         // "Desligamos" o VAO, evitando assim que operações posteriores venham a
         // alterar o mesmo. Isso evita bugs.
@@ -240,7 +276,7 @@ int main() {
 }
 
 // Constrói triângulos para futura renderização
-GLuint BuildTriangles() {
+GLuint BuildTrianglesForDigitZERO() {
     // Primeiro, definimos os atributos de cada vértice.
 
     // A posição de cada vértice é definida por coeficientes em "normalized
@@ -256,7 +292,7 @@ GLuint BuildTriangles() {
     // Este vetor "NDC_coefficients" define a GEOMETRIA (veja slides 103-110 do
     // documento Aula_04_Modelagem_Geometrica_3D.pdf).
     //
-    auto NDC_coefficients = circleCoefficients<kCircleSides>(kCircleRadius);
+    auto NDC_coefficients = donutCoefficients<kDonutSides>(kInternalRadius, kExternalRadius);
 
     // Criamos o identificador (ID) de um Vertex Buffer Object (VBO).  Um VBO é
     // um buffer de memória que irá conter os valores de um certo atributo de
@@ -267,7 +303,7 @@ GLuint BuildTriangles() {
     GLuint VBO_NDC_coefficients_id;
     glGenBuffers(1, &VBO_NDC_coefficients_id);
 
-    // Criamos o identificador (ID) de um Vertex Array Object (VAO). Um VAO
+    // Criamos o identificador (ID) de um Vertex Array Object (VAO).  Um VAO
     // contém a definição de vários atributos de um certo conjunto de vértices;
     // isto é, um VAO irá conter ponteiros para vários VBOs.
     GLuint vertex_array_object_id;
@@ -294,29 +330,14 @@ GLuint BuildTriangles() {
     //
     //            glBufferData()  ==  malloc() do C  ==  new do C++.
     //
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(GLfloat) * NDC_coefficients.
-
-                                   size(),
-
-                 nullptr, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, totalSize(NDC_coefficients), nullptr, GL_STATIC_DRAW);
 
     // Finalmente, copiamos os valores do array NDC_coefficients para dentro do
     // VBO "ligado" acima.  Pense que:
     //
     //            glBufferSubData()  ==  memcpy() do C.
     //
-    glBufferSubData(GL_ARRAY_BUFFER, 0,
-                    sizeof(GLfloat) * NDC_coefficients.
-
-                                      size(),
-                    NDC_coefficients
-
-                        .
-
-                    data()
-
-    );
+    glBufferSubData(GL_ARRAY_BUFFER, 0, totalSize(NDC_coefficients), NDC_coefficients.data());
 
     // Precisamos então informar um índice de "local" ("location"), o qual será
     // utilizado no shader "shader_vertex.glsl" para acessar os valores
@@ -350,27 +371,12 @@ GLuint BuildTriangles() {
     // coeficientes RGBA: Red, Green, Blue, Alpha; isto é: Vermelho, Verde,
     // Azul, Alpha (valor de transparência). Conversaremos sobre sistemas de
     // cores nas aulas de Modelos de Iluminação.
-    auto   color_coefficients = inToOutColored<kCircleSides>();
+    auto   color_coefficients = donutColors<kDonutSides>();
     GLuint VBO_color_coefficients_id;
     glGenBuffers(1, &VBO_color_coefficients_id);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_color_coefficients_id);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(GLfloat) * color_coefficients.
-
-                                   size(),
-
-                 nullptr, GL_STATIC_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, 0,
-                    sizeof(GLfloat) * color_coefficients.
-
-                                      size(),
-                    color_coefficients
-
-                        .
-
-                    data()
-
-    );
+    glBufferData(GL_ARRAY_BUFFER, totalSize(color_coefficients), nullptr, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, totalSize(color_coefficients), color_coefficients.data());
 
     location             = 1;  // "(location = 1)" em "shader_vertex.glsl"
     number_of_dimensions = 4;  // vec4 em "shader_vertex.glsl"
@@ -387,7 +393,7 @@ GLuint BuildTriangles() {
     // Este vetor "indices" define a TOPOLOGIA (veja slides 103-110 do documento
     // Aula_04_Modelagem_Geometrica_3D.pdf).
     //
-    auto indices = indexesForCircle<kCircleSides>();
+    auto indices = donutIndexes<kDonutSides>();
 
     // Criamos um buffer OpenGL para armazenar os índices acima
     GLuint indices_id;
@@ -397,25 +403,10 @@ GLuint BuildTriangles() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_id);
 
     // Alocamos memória para o buffer.
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 sizeof(GLubyte) * indices.
-
-                                   size(),
-
-                 nullptr, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, totalSize(indices), nullptr, GL_STATIC_DRAW);
 
     // Copiamos os valores do array indices[] para dentro do buffer.
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
-                    sizeof(GLubyte) * indices.
-
-                                      size(),
-                    indices
-
-                        .
-
-                    data()
-
-    );
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, totalSize(indices), indices.data());
 
     // NÃO faça a chamada abaixo! Diferente de um VBO (GL_ARRAY_BUFFER), um
     // array de índices (GL_ELEMENT_ARRAY_BUFFER) não pode ser "desligado",

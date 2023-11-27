@@ -6,7 +6,7 @@
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "/vcpkg/scripts/buildsystems/vcpkg.cmake"
             },
-            "binaryDir": "build/${presetName}"
+            "binaryDir": "build"
         }
     ],
     "buildPresets": [
