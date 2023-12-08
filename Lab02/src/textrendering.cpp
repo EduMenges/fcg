@@ -6,7 +6,6 @@
 #include <GLFW/glfw3.h>
 
 #include <glm/mat4x4.hpp>
-#include <glm/vec4.hpp>
 
 #include "utils.h"
 #include "dejavufont.h"
@@ -44,7 +43,7 @@ void TextRendering_LoadShader(const GLchar* const shader_string, GLuint shader_i
     glCompileShader(shader_id);
 
     // Verificamos se ocorreu algum erro ou "warning" durante a compilação
-    GLint compiled_ok;
+    GLint compiled_ok = 0;
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &compiled_ok);
 
     GLint log_length = 0;
@@ -52,7 +51,7 @@ void TextRendering_LoadShader(const GLchar* const shader_string, GLuint shader_i
 
     // Alocamos memória para guardar o log de compilação.
     // A chamada "new" em C++ é equivalente ao "malloc()" do C.
-    GLchar* log = new GLchar[log_length];
+    auto* log = new GLchar[log_length];
     glGetShaderInfoLog(shader_id, log_length, &log_length, log);
 
     // Imprime no terminal qualquer erro ou "warning" de compilação
@@ -89,7 +88,7 @@ GLuint texttexture_id;
 
 void TextRendering_Init()
 {
-    GLuint sampler;
+    GLuint sampler = 0;
 
     glGenBuffers(1, &textVBO);
     glGenVertexArrays(1, &textVAO);
@@ -113,7 +112,7 @@ void TextRendering_Init()
     glLinkProgram(textprogram_id);
     glCheckError();
 
-    GLuint texttex_uniform;
+    GLuint texttex_uniform = 0;
     texttex_uniform = glGetUniformLocation(textprogram_id, "tex");
     glCheckError();
 
@@ -149,18 +148,18 @@ float textscale = 1.5f;
 void TextRendering_PrintString(GLFWwindow* window, const std::string &str, float x, float y, float scale = 1.0f)
 {
     scale *= textscale;
-    int width, height;
+    int width = 0, height = 0;
     glfwGetWindowSize(window, &width, &height);
     float sx = scale / width;
     float sy = scale / height;
 
-    for (size_t i = 0; i < str.size(); i++)
+    for (char i : str)
     {
         // Find the glyph for the character we are looking for
         texture_glyph_t *glyph = 0;
         for (size_t j = 0; j < dejavufont.glyphs_count; ++j)
         {
-            if (dejavufont.glyphs[j].codepoint == (uint32_t)str[i])
+            if (dejavufont.glyphs[j].codepoint == static_cast<uint32_t>(i))
             {
                 glyph = &dejavufont.glyphs[j];
                 break;
@@ -170,10 +169,10 @@ void TextRendering_PrintString(GLFWwindow* window, const std::string &str, float
             continue;
         }
         x += glyph->kerning[0].kerning;
-        float x0 = (float) (x + glyph->offset_x * sx);
-        float y0 = (float) (y + glyph->offset_y * sy);
-        float x1 = (float) (x0 + glyph->width * sx);
-        float y1 = (float) (y0 - glyph->height * sy);
+        float x0 = (x + glyph->offset_x * sx);
+        float y0 = (y + glyph->offset_y * sy);
+        float x1 = (x0 + glyph->width * sx);
+        float y1 = (y0 - glyph->height * sy);
 
         float s0 = glyph->s0 - 0.5f/dejavufont.tex_width;
         float t0 = glyph->t0 - 0.5f/dejavufont.tex_height;
@@ -212,14 +211,14 @@ void TextRendering_PrintString(GLFWwindow* window, const std::string &str, float
 
 float TextRendering_LineHeight(GLFWwindow* window)
 {
-    int width, height;
+    int width = 0, height = 0;
     glfwGetWindowSize(window, &width, &height);
     return dejavufont.height / height * textscale;
 }
 
 float TextRendering_CharWidth(GLFWwindow* window)
 {
-    int width, height;
+    int width = 0, height = 0;
     glfwGetWindowSize(window, &width, &height);
     return dejavufont.glyphs[32].advance_x / width * textscale;
 }
@@ -227,16 +226,16 @@ float TextRendering_CharWidth(GLFWwindow* window)
 void TextRendering_PrintMatrix(GLFWwindow* window, glm::mat4 M, float x, float y, float scale = 1.0f)
 {
     char buffer[40];
-    float lineheight = TextRendering_LineHeight(window) * scale;
+    float line_height = TextRendering_LineHeight(window) * scale;
 
     snprintf(buffer, 40, "[%+0.2f %+0.2f %+0.2f %+0.2f]", M[0][0], M[1][0], M[2][0], M[3][0]);
     TextRendering_PrintString(window, buffer, x, y, scale);
     snprintf(buffer, 40, "[%+0.2f %+0.2f %+0.2f %+0.2f]", M[0][1], M[1][1], M[2][1], M[3][1]);
-    TextRendering_PrintString(window, buffer, x, y - lineheight, scale);
+    TextRendering_PrintString(window, buffer, x, y - line_height, scale);
     snprintf(buffer, 40, "[%+0.2f %+0.2f %+0.2f %+0.2f]", M[0][2], M[1][2], M[2][2], M[3][2]);
-    TextRendering_PrintString(window, buffer, x, y - 2*lineheight, scale);
+    TextRendering_PrintString(window, buffer, x, y - 2 * line_height, scale);
     snprintf(buffer, 40, "[%+0.2f %+0.2f %+0.2f %+0.2f]", M[0][3], M[1][3], M[2][3], M[3][3]);
-    TextRendering_PrintString(window, buffer, x, y - 3*lineheight, scale);
+    TextRendering_PrintString(window, buffer, x, y - 3 * line_height, scale);
 }
 
 void TextRendering_PrintVector(GLFWwindow* window, glm::vec4 v, float x, float y, float scale = 1.0f)

@@ -159,8 +159,7 @@ int main() {
 
     // Criamos uma janela do sistema operacional, com 800 colunas e 800 linhas
     // de pixels, e com título "INF01047 ...".
-    GLFWwindow *window;
-    window = glfwCreateWindow(800, 800, "INF01047 - 00333482 - Eduardo Menges Mattje", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(800, 800, "INF01047 - 00333482 - Eduardo Menges Mattje", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         fprintf(stderr, "ERROR: glfwCreateWindow() failed.\n");
@@ -188,7 +187,7 @@ int main() {
 
     // Carregamento de todas funções definidas por OpenGL 3.3, utilizando a
     // biblioteca GLAD.
-    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+    gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 
     // Imprimimos no terminal informações sobre a GPU do sistema
     const GLubyte *vendor = glGetString(GL_VENDOR);
@@ -370,7 +369,7 @@ int main() {
                     g_VirtualScene["cube_faces"].rendering_mode, // Veja slides 182-188 do documento Aula_04_Modelagem_Geometrica_3D.pdf
                     g_VirtualScene["cube_faces"].num_indices,
                     GL_UNSIGNED_INT,
-                    (void *) g_VirtualScene["cube_faces"].first_index
+                    g_VirtualScene["cube_faces"].first_index
             );
 
             // Pedimos para OpenGL desenhar linhas com largura de 4 pixels.
@@ -390,7 +389,7 @@ int main() {
                     g_VirtualScene["axes"].rendering_mode,
                     g_VirtualScene["axes"].num_indices,
                     GL_UNSIGNED_INT,
-                    (void *) g_VirtualScene["axes"].first_index
+                    g_VirtualScene["axes"].first_index
             );
 
             // Informamos para a placa de vídeo (GPU) que a variável booleana
@@ -407,7 +406,7 @@ int main() {
                     g_VirtualScene["cube_edges"].rendering_mode,
                     g_VirtualScene["cube_edges"].num_indices,
                     GL_UNSIGNED_INT,
-                    (void *) g_VirtualScene["cube_edges"].first_index
+                    g_VirtualScene["cube_edges"].first_index
             );
 
             // Desenhamos um ponto de tamanho 15 pixels em cima do terceiro vértice
@@ -445,7 +444,7 @@ int main() {
                 g_VirtualScene["axes"].rendering_mode,
                 g_VirtualScene["axes"].num_indices,
                 GL_UNSIGNED_INT,
-                (void *) g_VirtualScene["axes"].first_index
+                g_VirtualScene["axes"].first_index
         );
 
         // "Desligamos" o VAO, evitando assim que operações posteriores venham a
@@ -535,13 +534,13 @@ GLuint BuildTriangles() {
     // um conjunto de vértices; por exemplo: posição, cor, normais, coordenadas
     // de textura.  Neste exemplo utilizaremos vários VBOs, um para cada tipo de atributo.
     // Agora criamos um VBO para armazenarmos um atributo: posição.
-    GLuint VBO_model_coefficients_id;
+    GLuint VBO_model_coefficients_id = 0;
     glGenBuffers(1, &VBO_model_coefficients_id);
 
     // Criamos o identificador (ID) de um Vertex Array Object (VAO).  Um VAO
     // contém a definição de vários atributos de um certo conjunto de vértices;
     // isto é, um VAO irá conter ponteiros para vários VBOs.
-    GLuint vertex_array_object_id;
+    GLuint vertex_array_object_id = 0;
     glGenVertexArrays(1, &vertex_array_object_id);
 
     // "Ligamos" o VAO ("bind"). Informamos que iremos atualizar o VAO cujo ID
@@ -587,7 +586,7 @@ GLuint BuildTriangles() {
     // Veja https://www.khronos.org/opengl/wiki/Vertex_Specification#Vertex_Buffer_Object
     GLuint location = 0; // "(location = 0)" em "shader_vertex.glsl"
     GLint number_of_dimensions = 4; // vec4 em "shader_vertex.glsl"
-    glVertexAttribPointer(location, number_of_dimensions, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(location, number_of_dimensions, GL_FLOAT, GL_FALSE, 0, nullptr);
 
     // "Ativamos" os atributos. Informamos que os atributos com índice de local
     // definido acima, na variável "location", deve ser utilizado durante o
@@ -624,14 +623,14 @@ GLuint BuildTriangles() {
             0.0f, 0.0f, 1.0f, 1.0f, // cor do vértice 12
             0.0f, 0.0f, 1.0f, 1.0f, // cor do vértice 13
     };
-    GLuint VBO_color_coefficients_id;
+    GLuint VBO_color_coefficients_id = 0;
     glGenBuffers(1, &VBO_color_coefficients_id);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_color_coefficients_id);
     glBufferData(GL_ARRAY_BUFFER, sizeof(color_coefficients), nullptr, GL_STATIC_DRAW);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(color_coefficients), color_coefficients);
     location = 1; // "(location = 1)" em "shader_vertex.glsl"
     number_of_dimensions = 4; // vec4 em "shader_vertex.glsl"
-    glVertexAttribPointer(location, number_of_dimensions, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(location, number_of_dimensions, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(location);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -684,7 +683,7 @@ GLuint BuildTriangles() {
     // coloridas do cubo.
     SceneObject cube_faces{};
     cube_faces.name = "Cubo (faces coloridas)";
-    cube_faces.first_index = (void *) 0; // Primeiro índice está em indices[0]
+    cube_faces.first_index = nullptr; // Primeiro índice está em indices[0]
     cube_faces.num_indices = 36;       // Último índice está em indices[35]; total de 36 índices.
     cube_faces.rendering_mode = GL_TRIANGLES; // Índices correspondem ao tipo de rasterização GL_TRIANGLES.
 
@@ -711,7 +710,7 @@ GLuint BuildTriangles() {
     g_VirtualScene["axes"] = axes;
 
     // Criamos um buffer OpenGL para armazenar os índices acima
-    GLuint indices_id;
+    GLuint indices_id = 0;
     glGenBuffers(1, &indices_id);
 
     // "Ligamos" o buffer. Note que o tipo agora é GL_ELEMENT_ARRAY_BUFFER.
@@ -783,7 +782,7 @@ void LoadShader(const char *filename, GLuint shader_id) {
     shader << file.rdbuf();
     std::string str = shader.str();
     const GLchar *shader_string = str.c_str();
-    const GLint shader_string_length = static_cast<GLint>( str.length());
+    const auto shader_string_length = static_cast<GLint>( str.length());
 
     // Define o código do shader GLSL, contido na string "shader_string"
     glShaderSource(shader_id, 1, &shader_string, &shader_string_length);
@@ -792,7 +791,7 @@ void LoadShader(const char *filename, GLuint shader_id) {
     glCompileShader(shader_id);
 
     // Verificamos se ocorreu algum erro ou "warning" durante a compilação
-    GLint compiled_ok;
+    GLint compiled_ok = 0;
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &compiled_ok);
 
     GLint log_length = 0;
@@ -800,7 +799,7 @@ void LoadShader(const char *filename, GLuint shader_id) {
 
     // Alocamos memória para guardar o log de compilação.
     // A chamada "new" em C++ é equivalente ao "malloc()" do C.
-    GLchar *log = new GLchar[log_length];
+    auto *log = new GLchar[log_length];
     glGetShaderInfoLog(shader_id, log_length, &log_length, log);
 
     // Imprime no terminal qualquer erro ou "warning" de compilação
@@ -887,7 +886,7 @@ GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id) {
 
         // Alocamos memória para guardar o log de compilação.
         // A chamada "new" em C++ é equivalente ao "malloc()" do C.
-        GLchar *log = new GLchar[log_length];
+        auto *log = new GLchar[log_length];
 
         glGetProgramInfoLog(program_id, log_length, &log_length, log);
 
@@ -964,8 +963,8 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos) {
         return;
 
     // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-    float dx = xpos - g_LastCursorPosX;
-    float dy = ypos - g_LastCursorPosY;
+    auto dx = static_cast<float>(xpos - g_LastCursorPosX);
+    auto dy = static_cast<float>(ypos - g_LastCursorPosY);
 
     // Atualizamos parâmetros da câmera com os deslocamentos
     g_CameraTheta -= 0.01f * dx;
@@ -991,7 +990,7 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos) {
 void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
     // Atualizamos a distância da câmera para a origem utilizando a
     // movimentação da "rodinha", simulando um ZOOM.
-    g_CameraDistance -= 0.1f * yoffset;
+    g_CameraDistance -= 0.1f * static_cast<float>(yoffset);
 
     // Uma câmera look-at nunca pode estar exatamente "em cima" do ponto para
     // onde ela está olhando, pois isto gera problemas de divisão por zero na
@@ -1107,7 +1106,7 @@ void TextRendering_ShowModelViewProjection(
                               1.0f - 17 * pad, 1.0f);
     TextRendering_PrintMatrixVectorProductDivW(window, projection, p_camera, -1.0f, 1.0f - 18 * pad, 1.0f);
 
-    int width, height;
+    int width = 0, height = 0;
     glfwGetFramebufferSize(window, &width, &height);
 
     glm::vec2 a = glm::vec2(-1, -1);
@@ -1170,7 +1169,7 @@ void TextRendering_ShowFramesPerSecond(GLFWwindow *window) {
 
     // Variáveis estáticas (static) mantém seus valores entre chamadas
     // subsequentes da função!
-    static float old_seconds = (float) glfwGetTime();
+    static auto old_seconds = static_cast<float>(glfwGetTime());
     static int ellapsed_frames = 0;
     static char buffer[20] = "?? fps";
     static int numchars = 7;
@@ -1178,7 +1177,7 @@ void TextRendering_ShowFramesPerSecond(GLFWwindow *window) {
     ellapsed_frames += 1;
 
     // Recuperamos o número de segundos que passou desde a execução do programa
-    auto seconds = (float) glfwGetTime();
+    auto seconds = static_cast<float>(glfwGetTime());
 
     // Número de segundos desde o último cálculo do fps
     float ellapsed_seconds = seconds - old_seconds;
