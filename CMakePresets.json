@@ -2,17 +2,20 @@
     "version": 3,
     "configurePresets": [
         {
-            "name": "default",
-            "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "/vcpkg/scripts/buildsystems/vcpkg.cmake"
+            "name": "default-mingw",
+            "vendor": {
+                "jetbrains.com/clion": {
+                    "toolchain": "MinGW"
+                }
             },
-            "binaryDir": "build"
+            "binaryDir": "build",
+            "generator": "Ninja"
         }
     ],
     "buildPresets": [
         {
-            "name": "build",
-            "configurePreset": "default"
+            "name": "build-mingw",
+            "configurePreset": "default-mingw"
         }
     ]
 }
