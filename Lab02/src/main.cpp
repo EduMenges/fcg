@@ -7,7 +7,7 @@
 //
 //                   LABORATÓRIO 2
 //
-
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -24,13 +24,12 @@
 
 // Headers da biblioteca GLM: criação de matrizes e vetores.
 #include <glm/mat4x4.hpp>
-#include <glm/vec4.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 // Headers locais, definidos na pasta "include/"
 #include "matrices.h"
 
-constexpr float kCameraSpeed = 0.02;
+constexpr float kCameraSpeed = 0.02f;
 
 // Declaração de várias funções utilizadas em main().  Essas estão definidas
 // logo após a definição de main() neste arquivo.
@@ -135,12 +134,12 @@ bool g_UsePerspectiveProjection = true;
 // Variável que controla se o texto informativo será mostrado na tela.
 bool g_ShowInfoText = true;
 
-unsigned int isMovingForward = 0;
-unsigned int isMovingBackward = 0;
-unsigned int isMovingLeft = 0;
-unsigned int isMovingRight = 0;
+bool isMovingForward = false;
+bool isMovingBackward = false;
+bool isMovingLeft = false;
+bool isMovingRight = false;
 
-glm::vec4 firstCameraPos = glm::vec4(3.0f, 2.0f, 3.5f, 1.0f);
+static const glm::vec4 firstCameraPos = glm::vec4(3.0f, 2.0f, 3.5f, 1.0f);
 glm::vec4 cameraPos = firstCameraPos;
 
 int main() {
@@ -169,9 +168,9 @@ int main() {
 
 	// Criamos uma janela do sistema operacional, com 800 colunas e 800 linhas
 	// de pixels, e com título "INF01047 ...".
-	GLFWwindow *window = nullptr;
+	GLFWwindow *window;
 	window = glfwCreateWindow(800, 800, "INF01047 - 00333482 - Eduardo Menges Mattje", nullptr, nullptr);
-	if (!window) {
+	if (window==nullptr) {
 		glfwTerminate();
 		fprintf(stderr, "ERROR: glfwCreateWindow() failed.\n");
 		std::exit(EXIT_FAILURE);
@@ -265,7 +264,7 @@ int main() {
 	float r, y, z, x;
 
 	// Ficamos em loop, renderizando, até que o usuário feche a janela
-	while (!glfwWindowShouldClose(window)) {
+	while (glfwWindowShouldClose(window)==0) {
 		// printf("\t%d\n", isMovingForward);
 		// printf("%d\t%d\t%d\n\n", isMovingLeft, isMovingBackward, isMovingRight);
 
@@ -292,7 +291,7 @@ int main() {
 		// comentários detalhados dentro da definição de BuildTriangles().
 		glBindVertexArray(vertex_array_object_id);
 
-		// Computamos a posição da câmera utilizando coordenadas esféricas.  As
+		// Computamos a posição da câmera utilizando coordenadas esféricas. As
 		// variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
 		// controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
 		// e ScrollCallback().
@@ -323,14 +322,14 @@ int main() {
 
 		// Note que, no sistema de coordenadas da câmera, os planos near e far
 		// estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
-		float nearplane = -0.1f;  // Posição do "near plane"
-		float farplane = -10.0f; // Posição do "far plane"
+		constexpr float kNearplane = -0.1f;  // Posição do "near plane"
+		constexpr float kFarplane = -10.0f; // Posição do "far plane"
 
 		if (g_UsePerspectiveProjection) {
 			// Projeção Perspectiva.
 			// Para definição do field of view (FOV), veja slides 205-215 do documento Aula_09_Projecoes.pdf.
-			float field_of_view = 3.141592/3.0f;
-			projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
+			float field_of_view = M_PI/3.0f;
+			projection = Matrix_Perspective(field_of_view, g_ScreenRatio, kNearplane, kFarplane);
 		} else {
 			// Projeção Ortográfica.
 			// Para definição dos valores l, r, b, t ("left", "right", "bottom", "top"),
@@ -341,7 +340,7 @@ int main() {
 			float b = -t;
 			float r = t*g_ScreenRatio;
 			float l = -r;
-			projection = Matrix_Orthographic(l, r, b, t, nearplane, farplane);
+			projection = Matrix_Orthographic(l, r, b, t, kNearplane, kFarplane);
 		}
 
 		// Enviamos as matrizes "view" e "projection" para a placa de vídeo
@@ -369,7 +368,7 @@ int main() {
 				// A segunda cópia do cubo sofrerá um escalamento não-uniforme,
 				// seguido de uma rotação no eixo (1,1,1), e uma translação em Z (nessa ordem!).
 				model = Matrix_Translate(0.0f, 0.0f, -2.0f) // TERCEIRO translação
-					*Matrix_Rotate(3.141592f/8.0f, glm::vec4(1.0f, 1.0f, 1.0f, 0.0f)) // SEGUNDO rotação
+					*Matrix_Rotate(M_PI/8.0f, glm::vec4(1.0f, 1.0f, 1.0f, 0.0f)) // SEGUNDO rotação
 					*Matrix_Scale(2.0f, 0.5f, 0.5f); // PRIMEIRO escala
 			} else if (i==3) {
 				// A terceira cópia do cubo sofrerá rotações em X,Y e Z (nessa
@@ -395,7 +394,7 @@ int main() {
 			// Informamos para a placa de vídeo (GPU) que a variável booleana
 			// "render_as_black" deve ser colocada como "false". Veja o arquivo
 			// "shader_vertex.glsl".
-			glUniform1i(render_as_black_uniform, false);
+			glUniform1i(render_as_black_uniform, GL_FALSE);
 
 			// Pedimos para a GPU rasterizar os vértices do cubo apontados pelo
 			// VAO como triângulos, formando as faces do cubo. Esta
@@ -438,7 +437,7 @@ int main() {
 			// Informamos para a placa de vídeo (GPU) que a variável booleana
 			// "render_as_black" deve ser colocada como "true". Veja o arquivo
 			// "shader_vertex.glsl".
-			glUniform1i(render_as_black_uniform, true);
+			glUniform1i(render_as_black_uniform, GL_TRUE);
 
 			// Pedimos para a GPU rasterizar os vértices do cubo apontados pelo
 			// VAO como linhas, formando as arestas pretas do cubo. Veja a
@@ -476,7 +475,7 @@ int main() {
 		// Informamos para a placa de vídeo (GPU) que a variável booleana
 		// "render_as_black" deve ser colocada como "false". Veja o arquivo
 		// "shader_vertex.glsl".
-		glUniform1i(render_as_black_uniform, false);
+		glUniform1i(render_as_black_uniform, GL_FALSE);
 
 		// Pedimos para a GPU rasterizar os vértices dos eixos XYZ
 		// apontados pelo VAO como linhas. Veja a definição de
@@ -673,7 +672,7 @@ GLuint BuildTriangles() {
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(color_coefficients), color_coefficients);
 	location = 1; // "(location = 1)" em "shader_vertex.glsl"
 	number_of_dimensions = 4; // vec4 em "shader_vertex.glsl"
-	glVertexAttribPointer(location, number_of_dimensions, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(location, number_of_dimensions, GL_FLOAT, GL_FALSE, 0, nullptr);
 	glEnableVertexAttribArray(location);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -726,7 +725,7 @@ GLuint BuildTriangles() {
 	// coloridas do cubo.
 	SceneObject cube_faces{};
 	cube_faces.name = "Cubo (faces coloridas)";
-	cube_faces.first_index = (void *)0; // Primeiro índice está em indices[0]
+	cube_faces.first_index = reinterpret_cast<void *>(0); // Primeiro índice está em indices[0]
 	cube_faces.num_indices = 36;       // Último índice está em indices[35]; total de 36 índices.
 	cube_faces.rendering_mode = GL_TRIANGLES; // Índices correspondem ao tipo de rasterização GL_TRIANGLES.
 
@@ -737,7 +736,7 @@ GLuint BuildTriangles() {
 	// pretas do cubo.
 	SceneObject cube_edges{};
 	cube_edges.name = "Cubo (arestas pretas)";
-	cube_edges.first_index = (void *)(36*sizeof(GLuint)); // Primeiro índice está em indices[36]
+	cube_edges.first_index = reinterpret_cast<void *>(36*sizeof(GLuint)); // Primeiro índice está em indices[36]
 	cube_edges.num_indices = 24; // Último índice está em indices[59]; total de 24 índices.
 	cube_edges.rendering_mode = GL_LINES; // Índices correspondem ao tipo de rasterização GL_LINES.
 
@@ -747,7 +746,7 @@ GLuint BuildTriangles() {
 	// Criamos um terceiro objeto virtual (SceneObject) que se refere aos eixos XYZ.
 	SceneObject axes{};
 	axes.name = "Eixos XYZ";
-	axes.first_index = (void *)(60*sizeof(GLuint)); // Primeiro índice está em indices[60]
+	axes.first_index = reinterpret_cast<void *>(60*sizeof(GLuint)); // Primeiro índice está em indices[60]
 	axes.num_indices = 6; // Último índice está em indices[65]; total de 6 índices.
 	axes.rendering_mode = GL_LINES; // Índices correspondem ao tipo de rasterização GL_LINES.
 	g_VirtualScene["axes"] = axes;
@@ -842,7 +841,7 @@ void LoadShader(const char *filename, GLuint shader_id) {
 
 	// Alocamos memória para guardar o log de compilação.
 	// A chamada "new" em C++ é equivalente ao "malloc()" do C.
-	GLchar *log = new GLchar[log_length];
+	auto *log = new GLchar[log_length];
 	glGetShaderInfoLog(shader_id, log_length, &log_length, log);
 
 	// Imprime no terminal qualquer erro ou "warning" de compilação
@@ -896,7 +895,7 @@ GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id) {
 
 		// Alocamos memória para guardar o log de compilação.
 		// A chamada "new" em C++ é equivalente ao "malloc()" do C.
-		GLchar *log = new GLchar[log_length];
+		auto *log = new GLchar[log_length];
 
 		glGetProgramInfoLog(program_id, log_length, &log_length, log);
 
@@ -969,8 +968,9 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos) {
 	// parâmetros que definem a posição da câmera dentro da cena virtual.
 	// Assim, temos que o usuário consegue controlar a câmera.
 
-	if (!g_LeftMouseButtonPressed)
+	if (!g_LeftMouseButtonPressed) {
 		return;
+	}
 
 	// Deslocamento do cursor do mouse em x e y de coordenadas de tela!
 	float dx = xpos - g_LastCursorPosX;
@@ -981,14 +981,16 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos) {
 	g_CameraPhi += 0.01f*dy;
 
 	// Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
-	float phimax = 3.141592f/2;
+	float phimax = M_PI/2;
 	float phimin = -phimax;
 
-	if (g_CameraPhi > phimax)
+	if (g_CameraPhi > phimax) {
 		g_CameraPhi = phimax;
+	}
 
-	if (g_CameraPhi < phimin)
+	if (g_CameraPhi < phimin) {
 		g_CameraPhi = phimin;
+	}
 
 	// Atualizamos as variáveis globais para armazenar a posição atual do
 	// cursor como sendo a última posição conhecida do cursor.
@@ -1018,9 +1020,9 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
 	// ==============
 	// Não modifique este loop! Ele é utilizando para correção automatizada dos
 	// laboratórios. Deve ser sempre o primeiro comando desta função KeyCallback().
-	for (int i = 0; i < 10; ++i)
-		if (key==GLFW_KEY_0 + i && action==GLFW_PRESS && mod==GLFW_MOD_SHIFT)
-			std::exit(100 + i);
+	for (int i = 0; i < 10; ++i) {
+		if (key==GLFW_KEY_0 + i && action==GLFW_PRESS && mod==GLFW_MOD_SHIFT) { std::exit(100 + i); }
+	}
 	// ==============
 
 	// Se o usuário pressionar a tecla ESC, fechamos a janela.
@@ -1035,17 +1037,17 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
 	//   Se apertar tecla Z       então g_AngleZ += delta;
 	//   Se apertar tecla shift+Z então g_AngleZ -= delta;
 
-	float delta = 3.141592/16; // 22.5 graus, em radianos.
+	float delta = M_PI/16.0f; // 22.5 graus, em radianos.
 
 	if (key==GLFW_KEY_X && action==GLFW_PRESS) {
-		g_AngleX += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
+		g_AngleX += (mod & GLFW_MOD_SHIFT)!=0 ? -delta : delta;
 	}
 
 	if (key==GLFW_KEY_Y && action==GLFW_PRESS) {
-		g_AngleY += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
+		g_AngleY += (mod & GLFW_MOD_SHIFT)!=0 ? -delta : delta;
 	}
 	if (key==GLFW_KEY_Z && action==GLFW_PRESS) {
-		g_AngleZ += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
+		g_AngleZ += (mod & GLFW_MOD_SHIFT)!=0 ? -delta : delta;
 	}
 
 	// Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
@@ -1070,36 +1072,40 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
 		g_ShowInfoText = !g_ShowInfoText;
 	}
 
-	//Forward
-	if (key==GLFW_KEY_W && action==GLFW_PRESS) {
-		isMovingForward = 1;
-	}
-	if (key==GLFW_KEY_W && action==GLFW_RELEASE) {
-		isMovingForward = 0;
-	}
-
-	//Backward
-	if (key==GLFW_KEY_S && action==GLFW_PRESS) {
-		isMovingBackward = 1;
-	}
-	if (key==GLFW_KEY_S && action==GLFW_RELEASE) {
-		isMovingBackward = 0;
+	// Forward
+	if (key==GLFW_KEY_W) {
+		if (action==GLFW_PRESS) {
+			isMovingForward = true;
+		} else if (action==GLFW_RELEASE) {
+			isMovingForward = false;
+		}
 	}
 
-	//Left
-	if (key==GLFW_KEY_A && action==GLFW_PRESS) {
-		isMovingLeft = 1;
-	}
-	if (key==GLFW_KEY_A && action==GLFW_RELEASE) {
-		isMovingLeft = 0;
+	// Backward
+	if (key==GLFW_KEY_S) {
+		if (action==GLFW_PRESS) {
+			isMovingBackward = true;
+		} else if (action==GLFW_RELEASE) {
+			isMovingBackward = false;
+		}
 	}
 
-	//Right
-	if (key==GLFW_KEY_D && action==GLFW_PRESS) {
-		isMovingRight = 1;
+	// Left
+	if (key==GLFW_KEY_A) {
+		if (action==GLFW_PRESS) {
+			isMovingLeft = true;
+		} else if (action==GLFW_RELEASE) {
+			isMovingLeft = false;
+		}
 	}
-	if (key==GLFW_KEY_D && action==GLFW_RELEASE) {
-		isMovingRight = 0;
+
+	// Right
+	if (key==GLFW_KEY_D) {
+		if (action==GLFW_PRESS) {
+			isMovingRight = true;
+		} else if (action==GLFW_RELEASE) {
+			isMovingRight = false;
+		}
 	}
 
 	if (key==GLFW_KEY_R && action==GLFW_PRESS) {
@@ -1185,36 +1191,46 @@ void TextRendering_ShowModelViewProjection(
 // Escrevemos na tela os ângulos de Euler definidos nas variáveis globais
 // g_AngleX, g_AngleY, e g_AngleZ.
 void TextRendering_ShowEulerAngles(GLFWwindow *window) {
-	if (!g_ShowInfoText)
+	if (!g_ShowInfoText) {
 		return;
+	}
 
 	float pad = TextRendering_LineHeight(window);
+	constexpr size_t kBufferSize = 80;
+	char buffer[kBufferSize];
 
-	char buffer[80];
-	snprintf(buffer, 80, "Euler Angles rotation matrix = Z(%.2f)*Y(%.2f)*X(%.2f)\n", g_AngleZ, g_AngleY, g_AngleX);
+	snprintf(buffer,
+			 kBufferSize,
+			 "Euler Angles rotation matrix = Z(%.2f)*Y(%.2f)*X(%.2f)\n",
+			 g_AngleZ,
+			 g_AngleY,
+			 g_AngleX);
 
 	TextRendering_PrintString(window, buffer, -1.0f + pad/10, -1.0f + 2*pad/10, 1.0f);
 }
 
 // Escrevemos na tela qual matriz de projeção está sendo utilizada.
 void TextRendering_ShowProjection(GLFWwindow *window) {
-	if (!g_ShowInfoText)
+	if (!g_ShowInfoText) {
 		return;
+	}
 
 	float lineheight = TextRendering_LineHeight(window);
 	float charwidth = TextRendering_CharWidth(window);
 
-	if (g_UsePerspectiveProjection)
+	if (g_UsePerspectiveProjection) {
 		TextRendering_PrintString(window, "Perspective", 1.0f - 13*charwidth, -1.0f + 2*lineheight/10, 1.0f);
-	else
+	} else {
 		TextRendering_PrintString(window, "Orthographic", 1.0f - 13*charwidth, -1.0f + 2*lineheight/10, 1.0f);
+	}
 }
 
 // Escrevemos na tela o número de quadros renderizados por segundo (frames per
 // second).
 void TextRendering_ShowFramesPerSecond(GLFWwindow *window) {
-	if (!g_ShowInfoText)
+	if (!g_ShowInfoText) {
 		return;
+	}
 
 	// Variáveis estáticas (static) mantém seus valores entre chamadas
 	// subsequentes da função!
