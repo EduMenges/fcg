@@ -2,20 +2,42 @@
     "version": 3,
     "configurePresets": [
         {
+            "name": "default",
+            "binaryDir": "build",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE":"Debug"
+            }
+        },
+        {
             "name": "default-mingw",
+            "displayName": "Default MinGW",
             "vendor": {
                 "jetbrains.com/clion": {
                     "toolchain": "MinGW"
                 }
             },
-            "binaryDir": "build",
             "generator": "Ninja"
+        },
+        {
+            "name": "default-linux",
+            "displayName": "Linux Clang",
+            "description": "Using compilers: C = /usr/bin/clang, CXX = /usr/bin/clang++",
+            "inherits": ["default"],
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "/usr/bin/clang",
+                "CMAKE_CXX_COMPILER": "/usr/bin/clang++"
+            }
         }
     ],
     "buildPresets": [
         {
             "name": "build-mingw",
             "configurePreset": "default-mingw"
+        },
+        {
+            "name": "build-linux",
+            "configurePreset": "default-linux"
         }
     ]
 }

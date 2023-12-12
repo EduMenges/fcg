@@ -12,7 +12,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(glfw3 CONFIG REQUIRED)
 link_libraries(glfw3)
 
-add_subdirectory(glad)
+add_subdirectory(common)
+link_libraries(common)
 link_libraries(glad)
 
 add_subdirectory(Lab01)
