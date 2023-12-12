@@ -21,13 +21,8 @@
         },
         {
             "name": "default-linux",
-            "displayName": "Linux Clang",
-            "description": "Using compilers: C = /usr/bin/clang, CXX = /usr/bin/clang++",
-            "inherits": ["default"],
-            "cacheVariables": {
-                "CMAKE_C_COMPILER": "/usr/bin/clang",
-                "CMAKE_CXX_COMPILER": "/usr/bin/clang++"
-            }
+            "displayName": "Linux",
+            "inherits": ["default"]
         }
     ],
     "buildPresets": [
