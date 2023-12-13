@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FetchContent)
+
 find_package(glfw3 CONFIG)
 if (NOT glfw3_FOUND)
     FetchContent_Declare(
@@ -19,8 +20,9 @@ if (NOT glfw3_FOUND)
     )
     FetchContent_MakeAvailable(glfw3)
 endif ()
-
 link_libraries(glfw3)
+
+find_package(glm CONFIG REQUIRED)
 
 add_subdirectory(common)
 link_libraries(common)
