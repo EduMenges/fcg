@@ -22,7 +22,11 @@
         {
             "name": "default-linux",
             "displayName": "Linux",
-            "inherits": ["default"]
+            "inherits": ["default"],
+            "cacheVariables": {
+                "glfw_DIR" : "/usr/lib/x86_64-linux-gnu/cmake/glfw3/",
+                "glm_DIR" : "/usr/lib/cmake/glm"
+            }
         }
     ],
     "buildPresets": [

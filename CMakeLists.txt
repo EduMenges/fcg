@@ -19,8 +19,9 @@ if (NOT glfw3_FOUND)
         GIT_TAG 3.3.8
     )
     FetchContent_MakeAvailable(glfw3)
+    find_package(glfw3 CONFIG REQUIRED)
 endif ()
-link_libraries(glfw3)
+link_libraries(glfw)
 
 find_package(glm CONFIG REQUIRED)
 
@@ -30,4 +31,3 @@ link_libraries(glad)
 
 add_subdirectory(Lab01)
 add_subdirectory(Lab02)
-
