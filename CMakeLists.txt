@@ -11,19 +11,18 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FetchContent)
 
-find_package(glfw3 CONFIG)
-if (NOT glfw3_FOUND)
-    FetchContent_Declare(
-        glfw3
-        GIT_REPOSITORY https://github.com/glfw/glfw.git
-        GIT_TAG 3.3.8
-    )
-    FetchContent_MakeAvailable(glfw3)
-    find_package(glfw3 CONFIG REQUIRED)
-endif ()
+find_package(glfw3 CONFIG REQUIRED)
 link_libraries(glfw)
 
-find_package(glm CONFIG REQUIRED)
+find_package(glm CONFIG)
+if (NOT glm_FOUND)
+  FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG 0.9.9.8
+  )
+  FetchContent_MakeAvailable(glm)
+endif()
 
 add_subdirectory(common)
 link_libraries(common)

@@ -101,7 +101,7 @@ std::array<GLfloat, size(sides)> donutColors() {
 }
 
 template <size_t sides>
-constexpr std::array<GLubyte, indexAmount(sides)> donutIndexes() {
+std::array<GLubyte, indexAmount(sides)> donutIndexes() {
     std::array<GLubyte, indexAmount(sides)> res{};
 
     GLubyte j = 0;

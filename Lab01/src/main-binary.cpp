@@ -102,7 +102,7 @@ std::array<GLfloat, size(sides)> colors() {
 }
 
 template <size_t sides>
-constexpr std::array<GLubyte, indexAmount(sides)> indexes() {
+std::array<GLubyte, indexAmount(sides)> indexes() {
     std::array<GLubyte, indexAmount(sides)> res{};
 
     GLubyte j = 0;
@@ -118,7 +118,6 @@ constexpr std::array<GLubyte, indexAmount(sides)> indexes() {
 
     return res;
 }
-
 }
 
 namespace one {
