@@ -30,3 +30,4 @@ link_libraries(glad)
 
 add_subdirectory(Lab01)
 add_subdirectory(Lab02)
+add_subdirectory(Lab03)

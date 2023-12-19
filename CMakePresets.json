@@ -3,11 +3,12 @@
     "configurePresets": [
         {
             "name": "default",
-            "binaryDir": "build",
             "hidden": true,
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE":"Debug"
-            }
+            },
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "installDir": "${sourceDir}/install/${presetName}"
         },
         {
             "name": "default-mingw",
@@ -17,14 +18,24 @@
                     "toolchain": "MinGW"
                 }
             },
-            "generator": "Ninja"
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER":"C:/msys64/clang64/bin/clang++.exe",
+                "glfw3_DIR" : "C:/msys64/clang64/lib/cmake/glfw3",
+                "glm_DIR" : "C:/msys64/clang64/lib/cmake/glm"
+            }
         },
         {
             "name": "default-linux",
             "displayName": "Linux",
             "inherits": ["default"],
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
             "cacheVariables": {
-                "glfw_DIR" : "/usr/lib/x86_64-linux-gnu/cmake/glfw3/",
+                "glfw3_DIR" : "/usr/lib/x86_64-linux-gnu/cmake/glfw3/",
                 "glm_DIR" : "/usr/lib/cmake/glm"
             }
         }
