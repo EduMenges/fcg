@@ -16,13 +16,23 @@ link_libraries(glfw)
 
 find_package(glm CONFIG)
 if (NOT glm_FOUND)
-  FetchContent_Declare(
-    glm
-    GIT_REPOSITORY https://github.com/g-truc/glm.git
-    GIT_TAG 0.9.9.8
-  )
-  FetchContent_MakeAvailable(glm)
-endif()
+    FetchContent_Declare(
+            glm
+            GIT_REPOSITORY https://github.com/g-truc/glm.git
+            GIT_TAG 0.9.9.8
+    )
+    FetchContent_MakeAvailable(glm)
+endif ()
+
+find_package(tinyobjloader CONFIG)
+if (NOT tinyobjloader_FOUND)
+    FetchContent_Declare(
+            tinyobjloader
+            GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
+            GIT_TAG origin/release
+    )
+    FetchContent_MakeAvailable(tinyobjloader)
+endif ()
 
 add_compile_definitions(_USE_MATH_DEFINES)
 
@@ -33,3 +43,4 @@ link_libraries(glad)
 add_subdirectory(Lab01)
 add_subdirectory(Lab02)
 add_subdirectory(Lab03)
+add_subdirectory(Lab04)
