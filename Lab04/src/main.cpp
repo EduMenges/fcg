@@ -8,6 +8,10 @@
 //                   LABORATÓRIO 4
 //
 
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
+#endif
+
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -22,6 +26,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <algorithm>
+#include <iostream>
 
 // Headers das bibliotecas OpenGL
 #include <glad/glad.h>   // Criação de contexto OpenGL 3.3
@@ -45,8 +50,6 @@ struct ObjModel {
   std::vector<tinyobj::shape_t> shapes;
   std::vector<tinyobj::material_t> materials;
 
-  // Este construtor lê o modelo de um arquivo utilizando a biblioteca tinyobjloader.
-  // Veja: https://github.com/syoyo/tinyobjloader
   ObjModel(const char *filename, const char *basepath = nullptr, bool triangulate = true) {
 	  printf("Carregando objetos do arquivo \"%s\"...\n", filename);
 
@@ -68,7 +71,7 @@ struct ObjModel {
 	  bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename, basepath, triangulate);
 
 	  if (!err.empty()) {
-		  fprintf(stderr, "\n%s\n", err.c_str());
+		  std::cerr << err << '\n';
 	  }
 
 	  if (!ret) {
@@ -85,10 +88,10 @@ struct ObjModel {
 					  filename);
 			  throw std::runtime_error("Objeto sem nome.");
 		  }
-		  printf("- Objeto '%s'\n", shape.name.c_str());
+		  std::cout << "- Objeto '" << shape.name.c_str() << "'\n";
 	  }
 
-	  printf("OK.\n");
+	  std::cout << "OK.\n";
   }
 };
 
@@ -98,7 +101,7 @@ void PopMatrix(glm::mat4 &M);
 
 // Declaração de várias funções utilizadas em main().  Essas estão definidas
 // logo após a definição de main() neste arquivo.
-void BuildTrianglesAndAddToVirtualScene(ObjModel *); // Constrói representação de um ObjModel como malha de triângulos para renderização
+void BuildTrianglesAndAddToVirtualScene(ObjModel * /*model*/); // Constrói representação de um ObjModel como malha de triângulos para renderização
 void ComputeNormals(ObjModel *model); // Computa normais de um ObjModel, caso não existam.
 void LoadShadersFromFiles(); // Carrega os shaders de vértice e fragmento, criando um programa de GPU
 void DrawVirtualObject(const char *object_name); // Desenha um objeto armazenado em g_VirtualScene
@@ -170,7 +173,7 @@ struct SceneObject {
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
 
 // A cena virtual é uma lista de objetos nomeados, guardados em um dicionário
-// (map).  Veja dentro da função BuildTrianglesAndAddToVirtualScene() como que são incluídos
+// (map). Veja dentro da função BuildTrianglesAndAddToVirtualScene() como que são incluídos
 // objetos dentro da variável g_VirtualScene, e veja na função main() como
 // estes são acessados.
 std::map<std::string, SceneObject> g_VirtualScene;
@@ -187,7 +190,7 @@ float g_AngleY = 0.0f;
 float g_AngleZ = 0.0f;
 
 // "g_LeftMouseButtonPressed = true" se o usuário está com o botão esquerdo do mouse
-// pressionado no momento atual. Veja função MouseButtonCallback().
+// pressionado agora. Veja função MouseButtonCallback().
 bool g_LeftMouseButtonPressed = false;
 bool g_RightMouseButtonPressed = false; // Análogo para botão direito do mouse
 bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mouse
@@ -248,7 +251,7 @@ int main(int argc, char *argv[]) {
 	// Criamos uma janela do sistema operacional, com 800 colunas e 600 linhas
 	// de pixels, e com título "INF01047 ...".
 	GLFWwindow *window;
-	window = glfwCreateWindow(800, 600, "INF01047 - Seu Cartao - Seu Nome", nullptr, nullptr);
+	window = glfwCreateWindow(800, 600, "INF01047 - 00333482 - Eduardo Menges Mattje", nullptr, nullptr);
 	if (window==nullptr) {
 		glfwTerminate();
 		fprintf(stderr, "ERROR: glfwCreateWindow() failed.\n");
@@ -291,18 +294,18 @@ int main(int argc, char *argv[]) {
 	//
 	LoadShadersFromFiles();
 
-	// Construímos a representação de objetos geométricos através de malhas de triângulos
-	ObjModel spheremodel("../../data/sphere.obj");
-	ComputeNormals(&spheremodel);
-	BuildTrianglesAndAddToVirtualScene(&spheremodel);
+	// Construímos a representação de objetos geométricos por malhas de triângulos
+	ObjModel sphere_model("../../data/sphere.obj");
+	ComputeNormals(&sphere_model);
+	BuildTrianglesAndAddToVirtualScene(&sphere_model);
 
-	ObjModel bunnymodel("../../data/bunny.obj");
-	ComputeNormals(&bunnymodel);
-	BuildTrianglesAndAddToVirtualScene(&bunnymodel);
+	ObjModel bunny_model("../../data/bunny.obj");
+	ComputeNormals(&bunny_model);
+	BuildTrianglesAndAddToVirtualScene(&bunny_model);
 
-	ObjModel planemodel("../../data/plane.obj");
-	ComputeNormals(&planemodel);
-	BuildTrianglesAndAddToVirtualScene(&planemodel);
+	ObjModel plane_model("../../data/plane.obj");
+	ComputeNormals(&plane_model);
+	BuildTrianglesAndAddToVirtualScene(&plane_model);
 
 	if (argc > 1) {
 		ObjModel model(argv[1]);
@@ -801,7 +804,6 @@ void LoadShader(const char *filename, GLuint shader_id) {
 		fprintf(stderr, "%s", output.c_str());
 	}
 
-	// A chamada "delete" em C++ é equivalente ao "free()" do C
 	delete[] log;
 }
 
@@ -840,7 +842,6 @@ GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id) {
 		output += log;
 		output += "\n== End of link log\n";
 
-		// A chamada "delete" em C++ é equivalente ao "free()" do C
 		delete[] log;
 
 		fprintf(stderr, "%s", output.c_str());
