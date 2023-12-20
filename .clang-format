@@ -28,6 +28,6 @@ Standard: c++11
 InsertNewlineAtEOF: true
 FixNamespaceComments: false
 IndentWidth: 4
-ColumnLimit: 150
-SortIncludes: CaseInsensitive
+ColumnLimit: 120
+SortIncludes: Never
 ReflowComments: true
