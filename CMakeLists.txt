@@ -24,6 +24,8 @@ if (NOT glm_FOUND)
   FetchContent_MakeAvailable(glm)
 endif()
 
+add_compile_definitions(_USE_MATH_DEFINES)
+
 add_subdirectory(common)
 link_libraries(common)
 link_libraries(glad)
