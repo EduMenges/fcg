@@ -407,6 +407,7 @@ int main() {
 					PopMatrix(model);
 					PushMatrix(model);
 					{
+						// Desenho da mão direita
 						model = model*Matrix_Translate(0.0f, -.65f, 0.0f);
 						PushMatrix(model);
 						{
@@ -422,68 +423,70 @@ int main() {
 			}
 			PopMatrix(model);
 
-			model = model*Matrix_Translate(0.55f, 0.35f, 0.0f);
+			// Desenhando a cabeça
+			model = model*Matrix_Translate(0.55f, 0.05f, 0.0f);
 			PushMatrix(model);
 			{
-				model = model // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
-					*Matrix_Rotate_Z(g_AngleZ)  // TERCEIRO rotação Z de Euler
-					*Matrix_Rotate_Y(g_AngleY)  // SEGUNDO rotação Y de Euler
-					*Matrix_Rotate_X(g_AngleX); // PRIMEIRO rotação X de Euler
-				PushMatrix(model); // Guardamos matriz model atual na pilha
+				model = model
+					*Matrix_Rotate_Z(g_AngleZ)
+					*Matrix_Rotate_Y(g_AngleY)
+					*Matrix_Rotate_X(-g_AngleX);
+				PushMatrix(model);
 				{
-					model = model*Matrix_Scale(0.3f,
-											   0.3f,
-											   0.3f); // Atualizamos matriz model (multiplicação à direita) com um escalamento do braço direito
+					model = model*Matrix_Scale(-0.3f,
+											   -0.3f,
+											   0.3f);
 					glUniformMatrix4fv(model_uniform,
 									   1,
 									   GL_FALSE,
-									   glm::value_ptr(model)); // Enviamos matriz model atual para a GPU
-					DrawCube(render_as_black_uniform); // #### BRAÇO DIREITO // Desenhamos o braço direito
+									   glm::value_ptr(model));
+					DrawCube(render_as_black_uniform);
 				}
-				PopMatrix(model); // Tiramos da pilha a matriz model guardada anteriormente
+				PopMatrix(model);
 			}
 			PopMatrix(model);
 
+			// Desenhando o braço esquerdo
 			model = model*Matrix_Translate(0.55f,
-										   -0.35f,
-										   0.0f); // Atualizamos matriz model (multiplicação à direita) com uma translação para o braço direito
-			PushMatrix(model); // Guardamos matriz model atual na pilha
+										   -0.05f,
+										   0.0f);
+			PushMatrix(model);
 			{
-				model = model // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
-					*Matrix_Rotate_Z(g_AngleZ)  // TERCEIRO rotação Z de Euler
-					*Matrix_Rotate_Y(g_AngleY)  // SEGUNDO rotação Y de Euler
-					*Matrix_Rotate_X(g_AngleX); // PRIMEIRO rotação X de Euler
-				PushMatrix(model); // Guardamos matriz model atual na pilha
+				model = model
+					*Matrix_Rotate_Z(g_AngleZ)
+					*Matrix_Rotate_Y(g_AngleY)
+					*Matrix_Rotate_X(g_AngleX);
+				PushMatrix(model);
 				{
 					model = model*Matrix_Scale(0.2f,
 											   0.6f,
-											   0.2f); // Atualizamos matriz model (multiplicação à direita) com um escalamento do braço direito
+											   0.2f);
 					glUniformMatrix4fv(model_uniform,
 									   1,
 									   GL_FALSE,
-									   glm::value_ptr(model)); // Enviamos matriz model atual para a GPU
-					DrawCube(render_as_black_uniform); // #### BRAÇO DIREITO // Desenhamos o braço direito
+									   glm::value_ptr(model));
+					DrawCube(render_as_black_uniform);
 				}
-				PopMatrix(model); // Tiramos da pilha a matriz model guardada anteriormente
-				PushMatrix(model); // Guardamos matriz model atual na pilha
+				PopMatrix(model);
+				PushMatrix(model);
 				{
 					model = model*Matrix_Translate(0.0f,
 												   -0.65f,
-												   0.0f); // Atualizamos matriz model (multiplicação à direita) com a translação do antebraço direito
+												   0.0f);
 					model =
-						model // Atualizamos matriz model (multiplicação à direita) com a rotação do antebraço direito
-							*Matrix_Rotate_Z(-g_ForearmAngleZ)  // SEGUNDO rotação Z de Euler
-							*Matrix_Rotate_X(g_ForearmAngleX); // PRIMEIRO rotação X de Euler
-					PushMatrix(model); // Guardamos matriz model atual na pilha
+						model
+							*Matrix_Rotate_Z(-g_ForearmAngleZ)
+							*Matrix_Rotate_X(g_ForearmAngleX);
+					PushMatrix(model);
 					{
 						model = model*Matrix_Scale(0.2f,
 												   0.6f,
-												   0.2f); // Atualizamos matriz model (multiplicação à direita) com um escalamento do antebraço direito
+												   0.2f);
 						glUniformMatrix4fv(model_uniform,
 										   1,
 										   GL_FALSE,
-										   glm::value_ptr(model)); // Enviamos matriz model atual para a GPU
-						DrawCube(render_as_black_uniform); // #### ANTEBRAÇO DIREITO // Desenhamos o antebraço direito
+										   glm::value_ptr(model));
+						DrawCube(render_as_black_uniform);
 					}
 					PopMatrix(model);
 					PushMatrix(model);
@@ -503,6 +506,109 @@ int main() {
 			}
 			PopMatrix(model);
 
+			// Desenhando a perna esquerda
+			model = model*Matrix_Translate(-0.35f,
+										   -1.05f,
+										   0.0f);
+			PushMatrix(model);
+			{
+				PushMatrix(model);
+				{
+					model = model*Matrix_Scale(0.3f,
+											   0.6f,
+											   0.3);
+					glUniformMatrix4fv(model_uniform,
+									   1,
+									   GL_FALSE,
+									   glm::value_ptr(model));
+					DrawCube(render_as_black_uniform);
+				}
+				PopMatrix(model);
+				PushMatrix(model);
+				{
+					model = model*Matrix_Translate(0.0f,
+												   -0.65f,
+												   0.0f);
+					PushMatrix(model);
+					{
+						model = model*Matrix_Scale(0.25f,
+												   0.6f,
+												   0.25f);
+						glUniformMatrix4fv(model_uniform,
+										   1,
+										   GL_FALSE,
+										   glm::value_ptr(model));
+						DrawCube(render_as_black_uniform);
+					}
+					PopMatrix(model);
+					PushMatrix(model);
+					{
+						model = model*Matrix_Translate(0.0f, -.65f, 0.1f);
+						PushMatrix(model);
+						{
+							model = model*Matrix_Scale(0.25f, 0.1f, 0.55f);
+							glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+							DrawCube(render_as_black_uniform);
+						}
+						PopMatrix(model);
+					}
+					PopMatrix(model);
+				}
+				PopMatrix(model);
+			}
+			PopMatrix(model);
+
+			// Desenhando a perna direita
+			model = model*Matrix_Translate(-0.40f,
+										   0.0f,
+										   0.0f);
+			PushMatrix(model);
+			{
+				PushMatrix(model);
+				{
+					model = model*Matrix_Scale(0.3f,
+											   0.6f,
+											   0.3);
+					glUniformMatrix4fv(model_uniform,
+									   1,
+									   GL_FALSE,
+									   glm::value_ptr(model));
+					DrawCube(render_as_black_uniform);
+				}
+				PopMatrix(model);
+				PushMatrix(model);
+				{
+					model = model*Matrix_Translate(0.0f,
+												   -0.65f,
+												   0.0f);
+					PushMatrix(model);
+					{
+						model = model*Matrix_Scale(0.25f,
+												   0.6f,
+												   0.25f);
+						glUniformMatrix4fv(model_uniform,
+										   1,
+										   GL_FALSE,
+										   glm::value_ptr(model));
+						DrawCube(render_as_black_uniform);
+					}
+					PopMatrix(model);
+					PushMatrix(model);
+					{
+						model = model*Matrix_Translate(0.0f, -.65f, 0.1f);
+						PushMatrix(model);
+						{
+							model = model*Matrix_Scale(0.25f, 0.1f, 0.55f);
+							glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+							DrawCube(render_as_black_uniform);
+						}
+						PopMatrix(model);
+					}
+					PopMatrix(model);
+				}
+				PopMatrix(model);
+			}
+			PopMatrix(model);
 		}
 		PopMatrix(model);
 
