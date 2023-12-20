@@ -47,7 +47,7 @@ struct ObjModel {
 
   // Este construtor lê o modelo de um arquivo utilizando a biblioteca tinyobjloader.
   // Veja: https://github.com/syoyo/tinyobjloader
-  ObjModel(const char *filename, const char *basepath = NULL, bool triangulate = true) {
+  ObjModel(const char *filename, const char *basepath = nullptr, bool triangulate = true) {
 	  printf("Carregando objetos do arquivo \"%s\"...\n", filename);
 
 	  // Se basepath == NULL, então setamos basepath como o dirname do
@@ -55,8 +55,8 @@ struct ObjModel {
 	  // estejam no mesmo diretório dos arquivos OBJ.
 	  std::string fullpath(filename);
 	  std::string dirname;
-	  if (basepath==NULL) {
-		  auto i = fullpath.find_last_of("/");
+	  if (basepath==nullptr) {
+		  auto i = fullpath.find_last_of('/');
 		  if (i!=std::string::npos) {
 			  dirname = fullpath.substr(0, i + 1);
 			  basepath = dirname.c_str();
@@ -67,14 +67,16 @@ struct ObjModel {
 	  std::string err;
 	  bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename, basepath, triangulate);
 
-	  if (!err.empty())
+	  if (!err.empty()) {
 		  fprintf(stderr, "\n%s\n", err.c_str());
+	  }
 
-	  if (!ret)
+	  if (!ret) {
 		  throw std::runtime_error("Erro ao carregar modelo.");
+	  }
 
-	  for (size_t shape = 0; shape < shapes.size(); ++shape) {
-		  if (shapes[shape].name.empty()) {
+	  for (auto &shape : shapes) {
+		  if (shape.name.empty()) {
 			  fprintf(stderr,
 					  "*********************************************\n"
 					  "Erro: Objeto sem nome dentro do arquivo '%s'.\n"
@@ -83,7 +85,7 @@ struct ObjModel {
 					  filename);
 			  throw std::runtime_error("Objeto sem nome.");
 		  }
-		  printf("- Objeto '%s'\n", shapes[shape].name.c_str());
+		  printf("- Objeto '%s'\n", shape.name.c_str());
 	  }
 
 	  printf("OK.\n");
@@ -223,7 +225,7 @@ int main(int argc, char *argv[]) {
 	// Inicializamos a biblioteca GLFW, utilizada para criar uma janela do
 	// sistema operacional, onde poderemos renderizar com OpenGL.
 	int success = glfwInit();
-	if (!success) {
+	if (success==GLFW_FALSE) {
 		fprintf(stderr, "ERROR: glfwInit() failed.\n");
 		std::exit(EXIT_FAILURE);
 	}
@@ -246,8 +248,8 @@ int main(int argc, char *argv[]) {
 	// Criamos uma janela do sistema operacional, com 800 colunas e 600 linhas
 	// de pixels, e com título "INF01047 ...".
 	GLFWwindow *window;
-	window = glfwCreateWindow(800, 600, "INF01047 - Seu Cartao - Seu Nome", NULL, NULL);
-	if (!window) {
+	window = glfwCreateWindow(800, 600, "INF01047 - Seu Cartao - Seu Nome", nullptr, nullptr);
+	if (window==nullptr) {
 		glfwTerminate();
 		fprintf(stderr, "ERROR: glfwCreateWindow() failed.\n");
 		std::exit(EXIT_FAILURE);
@@ -268,7 +270,7 @@ int main(int argc, char *argv[]) {
 
 	// Carregamento de todas funções definidas por OpenGL 3.3, utilizando a
 	// biblioteca GLAD.
-	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+	gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 
 	// Definimos a função de callback que será chamada sempre que a janela for
 	// redimensionada, por consequência alterando o tamanho do "framebuffer"
@@ -319,7 +321,7 @@ int main(int argc, char *argv[]) {
 	glFrontFace(GL_CCW);
 
 	// Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
-	while (!glfwWindowShouldClose(window)) {
+	while (glfwWindowShouldClose(window)==GLFW_FALSE) {
 		// Aqui executamos as operações de renderização
 
 		// Definimos a cor do "fundo" do framebuffer como branco.  Tal cor é
@@ -465,7 +467,7 @@ void DrawVirtualObject(const char *object_name) {
 		g_VirtualScene[object_name].rendering_mode,
 		g_VirtualScene[object_name].num_indices,
 		GL_UNSIGNED_INT,
-		(void *)(g_VirtualScene[object_name].first_index*sizeof(GLuint))
+		reinterpret_cast<void *>(g_VirtualScene[object_name].first_index*sizeof(GLuint))
 	);
 
 	// "Desligamos" o VAO, evitando assim que operações posteriores venham a
@@ -499,8 +501,9 @@ void LoadShadersFromFiles() {
 	GLuint fragment_shader_id = LoadShader_Fragment("../../src/shader_fragment.glsl");
 
 	// Deletamos o programa de GPU anterior, caso ele exista.
-	if (g_GpuProgramID!=0)
+	if (g_GpuProgramID!=0) {
 		glDeleteProgram(g_GpuProgramID);
+	}
 
 	// Criamos um programa de GPU utilizando os shaders carregados acima.
 	g_GpuProgramID = CreateGpuProgram(vertex_shader_id, fragment_shader_id);
@@ -534,8 +537,9 @@ void PopMatrix(glm::mat4 &M) {
 // Função que computa as normais de um ObjModel, caso elas não tenham sido
 // especificadas dentro do arquivo ".obj"
 void ComputeNormals(ObjModel *model) {
-	if (!model->attrib.normals.empty())
+	if (!model->attrib.normals.empty()) {
 		return;
+	}
 
 	// Primeiro computamos as normais para todos os TRIÂNGULOS.
 	// Segundo, computamos as normais dos VÉRTICES através do método proposto
@@ -582,7 +586,7 @@ void ComputeNormals(ObjModel *model) {
 	model->attrib.normals.resize(3*num_vertices);
 
 	for (size_t i = 0; i < vertex_normals.size(); ++i) {
-		glm::vec4 n = vertex_normals[i]/(float)num_triangles_per_vertex[i];
+		glm::vec4 n = vertex_normals[i]/static_cast<float>(num_triangles_per_vertex[i]);
 		n /= norm(n);
 		model->attrib.normals[3*i + 0] = n.x;
 		model->attrib.normals[3*i + 1] = n.y;
@@ -754,7 +758,7 @@ void LoadShader(const char *filename, GLuint shader_id) {
 	shader << file.rdbuf();
 	std::string str = shader.str();
 	const GLchar *shader_string = str.c_str();
-	const GLint shader_string_length = static_cast<GLint>( str.length());
+	const auto shader_string_length = static_cast<GLint>( str.length());
 
 	// Define o código do shader GLSL, contido na string "shader_string"
 	glShaderSource(shader_id, 1, &shader_string, &shader_string_length);
@@ -771,14 +775,14 @@ void LoadShader(const char *filename, GLuint shader_id) {
 
 	// Alocamos memória para guardar o log de compilação.
 	// A chamada "new" em C++ é equivalente ao "malloc()" do C.
-	GLchar *log = new GLchar[log_length];
+	auto *log = new GLchar[log_length];
 	glGetShaderInfoLog(shader_id, log_length, &log_length, log);
 
 	// Imprime no terminal qualquer erro ou "warning" de compilação
 	if (log_length!=0) {
 		std::string output;
 
-		if (!compiled_ok) {
+		if (compiled_ok==GLFW_FALSE) {
 			output += "ERROR: OpenGL compilation of \"";
 			output += filename;
 			output += "\" failed.\n";
@@ -825,7 +829,7 @@ GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id) {
 
 		// Alocamos memória para guardar o log de compilação.
 		// A chamada "new" em C++ é equivalente ao "malloc()" do C.
-		GLchar *log = new GLchar[log_length];
+		auto *log = new GLchar[log_length];
 
 		glGetProgramInfoLog(program_id, log_length, &log_length, log);
 
@@ -867,7 +871,7 @@ void FramebufferSizeCallback(GLFWwindow *window, int width, int height) {
 	//
 	// O cast para float é necessário pois números inteiros são arredondados ao
 	// serem divididos!
-	g_ScreenRatio = (float)width/height;
+	g_ScreenRatio = static_cast<float>(width)/static_cast<float>(height);
 }
 
 // Variáveis globais que armazenam a última posição do cursor do mouse, para
@@ -940,14 +944,16 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos) {
 		g_CameraPhi += 0.01f*dy;
 
 		// Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
-		float phimax = 3.141592f/2;
+		float phimax = M_PI/2;
 		float phimin = -phimax;
 
-		if (g_CameraPhi > phimax)
+		if (g_CameraPhi > phimax) {
 			g_CameraPhi = phimax;
+		}
 
-		if (g_CameraPhi < phimin)
+		if (g_CameraPhi < phimin) {
 			g_CameraPhi = phimin;
+		}
 
 		// Atualizamos as variáveis globais para armazenar a posição atual do
 		// cursor como sendo a última posição conhecida do cursor.
@@ -998,8 +1004,9 @@ void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
 	// nunca pode ser zero. Versões anteriores deste código possuíam este bug,
 	// o qual foi detectado pelo aluno Vinicius Fraga (2017/2).
 	const float verysmallnumber = std::numeric_limits<float>::epsilon();
-	if (g_CameraDistance < verysmallnumber)
+	if (g_CameraDistance < verysmallnumber) {
 		g_CameraDistance = verysmallnumber;
+	}
 }
 
 // Definição da função que será chamada sempre que o usuário pressionar alguma
@@ -1008,14 +1015,17 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
 	// ===================
 	// Não modifique este loop! Ele é utilizando para correção automatizada dos
 	// laboratórios. Deve ser sempre o primeiro comando desta função KeyCallback().
-	for (int i = 0; i < 10; ++i)
-		if (key==GLFW_KEY_0 + i && action==GLFW_PRESS && mod==GLFW_MOD_SHIFT)
+	for (int i = 0; i < 10; ++i) {
+		if (key==GLFW_KEY_0 + i && action==GLFW_PRESS && mod==GLFW_MOD_SHIFT) {
 			std::exit(100 + i);
+		}
+	}
 	// ===================
 
 	// Se o usuário pressionar a tecla ESC, fechamos a janela.
-	if (key==GLFW_KEY_ESCAPE && action==GLFW_PRESS)
+	if (key==GLFW_KEY_ESCAPE && action==GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GL_TRUE);
+	}
 
 	// O código abaixo implementa a seguinte lógica:
 	//   Se apertar tecla X       então g_AngleX += delta;
@@ -1028,14 +1038,14 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
 	float delta = 3.141592/16; // 22.5 graus, em radianos.
 
 	if (key==GLFW_KEY_X && action==GLFW_PRESS) {
-		g_AngleX += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
+		g_AngleX += (mod & GLFW_MOD_SHIFT)!=0 ? -delta : delta;
 	}
 
 	if (key==GLFW_KEY_Y && action==GLFW_PRESS) {
-		g_AngleY += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
+		g_AngleY += (mod & GLFW_MOD_SHIFT)!=0 ? -delta : delta;
 	}
 	if (key==GLFW_KEY_Z && action==GLFW_PRESS) {
-		g_AngleZ += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
+		g_AngleZ += (mod & GLFW_MOD_SHIFT)!=0 ? -delta : delta;
 	}
 
 	// Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
@@ -1088,8 +1098,9 @@ void TextRendering_ShowModelViewProjection(
 	glm::mat4 model,
 	glm::vec4 p_model
 ) {
-	if (!g_ShowInfoText)
+	if (!g_ShowInfoText) {
 		return;
+	}
 
 	glm::vec4 p_world = model*p_model;
 	glm::vec4 p_camera = view*p_world;
@@ -1165,8 +1176,9 @@ void TextRendering_ShowModelViewProjection(
 // Escrevemos na tela os ângulos de Euler definidos nas variáveis globais
 // g_AngleX, g_AngleY, e g_AngleZ.
 void TextRendering_ShowEulerAngles(GLFWwindow *window) {
-	if (!g_ShowInfoText)
+	if (!g_ShowInfoText) {
 		return;
+	}
 
 	float pad = TextRendering_LineHeight(window);
 
@@ -1178,16 +1190,18 @@ void TextRendering_ShowEulerAngles(GLFWwindow *window) {
 
 // Escrevemos na tela qual matriz de projeção está sendo utilizada.
 void TextRendering_ShowProjection(GLFWwindow *window) {
-	if (!g_ShowInfoText)
+	if (!g_ShowInfoText) {
 		return;
+	}
 
 	float lineheight = TextRendering_LineHeight(window);
 	float charwidth = TextRendering_CharWidth(window);
 
-	if (g_UsePerspectiveProjection)
+	if (g_UsePerspectiveProjection) {
 		TextRendering_PrintString(window, "Perspective", 1.0f - 13*charwidth, -1.0f + 2*lineheight/10, 1.0f);
-	else
+	} else {
 		TextRendering_PrintString(window, "Orthographic", 1.0f - 13*charwidth, -1.0f + 2*lineheight/10, 1.0f);
+	}
 }
 
 // Escrevemos na tela o número de quadros renderizados por segundo (frames per
@@ -1198,7 +1212,7 @@ void TextRendering_ShowFramesPerSecond(GLFWwindow *window) {
 
 	// Variáveis estáticas (static) mantém seus valores entre chamadas
 	// subsequentes da função!
-	static float old_seconds = (float)glfwGetTime();
+	static auto old_seconds = static_cast<float>(glfwGetTime());
 	static int ellapsed_frames = 0;
 	static char buffer[20] = "?? fps";
 	static int numchars = 7;
@@ -1206,7 +1220,7 @@ void TextRendering_ShowFramesPerSecond(GLFWwindow *window) {
 	ellapsed_frames += 1;
 
 	// Recuperamos o número de segundos que passou desde a execução do programa
-	float seconds = (float)glfwGetTime();
+	auto seconds = static_cast<float>(glfwGetTime());
 
 	// Número de segundos desde o último cálculo do fps
 	float ellapsed_seconds = seconds - old_seconds;
@@ -1232,11 +1246,11 @@ void PrintObjModelInfo(ObjModel *model) {
 	const std::vector<tinyobj::shape_t> &shapes = model->shapes;
 	const std::vector<tinyobj::material_t> &materials = model->materials;
 
-	printf("# of vertices  : %d\n", (int)(attrib.vertices.size()/3));
-	printf("# of normals   : %d\n", (int)(attrib.normals.size()/3));
-	printf("# of texcoords : %d\n", (int)(attrib.texcoords.size()/2));
-	printf("# of shapes    : %d\n", (int)shapes.size());
-	printf("# of materials : %d\n", (int)materials.size());
+	printf("# of vertices  : %d\n", static_cast<int>(attrib.vertices.size()/3));
+	printf("# of normals   : %d\n", static_cast<int>(attrib.normals.size()/3));
+	printf("# of texcoords : %d\n", static_cast<int>(attrib.texcoords.size()/2));
+	printf("# of shapes    : %d\n", static_cast<int>(shapes.size()));
+	printf("# of materials : %d\n", static_cast<int>(materials.size()));
 
 	for (size_t v = 0; v < attrib.vertices.size()/3; v++) {
 		printf("  v[%ld] = (%f, %f, %f)\n", static_cast<long>(v),
@@ -1380,9 +1394,9 @@ void PrintObjModelInfo(ObjModel *model) {
 		printf("  material.map_Pm = %s\n", materials[i].metallic_texname.c_str());
 		printf("  material.map_Ps = %s\n", materials[i].sheen_texname.c_str());
 		printf("  material.norm   = %s\n", materials[i].normal_texname.c_str());
-		std::map<std::string, std::string>::const_iterator it(
+		auto it(
 			materials[i].unknown_parameter.begin());
-		std::map<std::string, std::string>::const_iterator itEnd(
+		auto itEnd(
 			materials[i].unknown_parameter.end());
 
 		for (; it!=itEnd; it++) {
