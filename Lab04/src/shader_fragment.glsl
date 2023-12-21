@@ -96,7 +96,7 @@ void main()
     vec3 lambert_diffuse_term = Kd * I * max(0, dot(n, l));
 
     // Termo ambiente
-    vec3 ambient_term = vec3(0.2, 0.2, 0.2);
+    vec3 ambient_term = Ka * Ia;
 
     // Termo especular utilizando o modelo de iluminação de Phong
     vec3 phong_specular_term  = Ks * I * pow(max(0, dot(r, v)), q);
