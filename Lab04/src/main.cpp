@@ -16,7 +16,6 @@
 #include <cstdio>
 #include <cstdlib>
 
-// Headers abaixo são específicos de C++
 #include <map>
 #include <stack>
 #include <string>
@@ -859,7 +858,7 @@ void FramebufferSizeCallback(GLFWwindow *window, int width, int height) {
 double g_LastCursorPosX, g_LastCursorPosY;
 
 // Função callback chamada sempre que o usuário aperta algum dos botões do mouse
-void MouseButtonCallback(GLFWwindow *window, int button, int action, int  /*mods*/) {
+void MouseButtonCallback(GLFWwindow *window, int button, int action, int /*mods*/) {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         // Se o usuário pressionou o botão esquerdo do mouse, guardamos a
         // posição atual do cursor nas variáveis g_LastCursorPosX e
@@ -1063,7 +1062,7 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
 }
 
 // Definimos o callback para impressão de erros da GLFW no terminal
-void ErrorCallback(int  /*error*/, const char *description) { fprintf(stderr, "ERROR: GLFW: %s\n", description); }
+void ErrorCallback(int /*error*/, const char *description) { fprintf(stderr, "ERROR: GLFW: %s\n", description); }
 
 // Esta função recebe um vértice com coordenadas de modelo p_model e passa o
 // mesmo por todos os sistemas de coordenadas armazenados nas matrizes model,
@@ -1159,7 +1158,9 @@ void TextRendering_ShowProjection(GLFWwindow *window) {
 // Escrevemos na tela o número de quadros renderizados por segundo (frames per
 // second).
 void TextRendering_ShowFramesPerSecond(GLFWwindow *window) {
-    if (!g_ShowInfoText) return;
+    if (!g_ShowInfoText) {
+        return;
+    }
 
     // Variáveis estáticas (static) mantém seus valores entre chamadas
     // subsequentes da função!
