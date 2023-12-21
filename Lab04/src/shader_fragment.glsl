@@ -93,13 +93,13 @@ void main()
     vec3 Ia = vec3(0.2, 0.2, 0.2);
 
     // Termo difuso utilizando a lei dos cossenos de Lambert
-    vec3 lambert_diffuse_term = Kd * I * max(0, dot(n, l)) + Ka * Ia;
+    vec3 lambert_diffuse_term = Kd * I * max(0, dot(n, l));
 
     // Termo ambiente
     vec3 ambient_term = vec3(0.2, 0.2, 0.2);
 
     // Termo especular utilizando o modelo de iluminação de Phong
-    vec3 phong_specular_term  = lambert_diffuse_term + Ks * I * pow(dot(r, v), q);
+    vec3 phong_specular_term  = Ks * I * pow(max(0, dot(r, v)), q);
 
     // NOTE: Se você quiser fazer o rendering de objetos transparentes, é
     // necessário:
@@ -122,5 +122,5 @@ void main()
     // Cor final com correção gamma, considerando monitor sRGB.
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
     color.rgb = pow(color.rgb, vec3(1.0, 1.0, 1.0)/2.2);
-} 
+}
 
