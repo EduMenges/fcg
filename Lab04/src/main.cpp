@@ -363,7 +363,7 @@ int main(int argc, char *argv[]) {
         if (g_UsePerspectiveProjection) {
             // Projeção Perspectiva.
             // Para definição do field of view (FOV), veja slides 205-215 do documento Aula_09_Projecoes.pdf.
-            float field_of_view = 3.141592 / 3.0f;
+            float field_of_view = M_PI / 3.0f;
             projection          = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
         } else {
             // Projeção Ortográfica.
