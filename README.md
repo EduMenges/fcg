@@ -1,0 +1,1 @@
+Implementação dos laboratórios da cadeira de Fundamentos de Computação Gráfica, INF01047, do professor Eduardo Gastal.

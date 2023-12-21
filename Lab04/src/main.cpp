@@ -709,7 +709,7 @@ GLuint LoadShader_Vertex(const char *filename) {
     return vertex_shader_id;
 }
 
-// Carrega um Fragment Shader de um arquivo GLSL . Veja definição de LoadShader() abaixo.
+// Carrega um Fragment Shader de um arquivo GLSL. Veja definição de LoadShader() abaixo.
 GLuint LoadShader_Fragment(const char *filename) {
     // Criamos um identificador (ID) para este shader, informando que o mesmo
     // será aplicado nos fragmentos.
@@ -722,7 +722,7 @@ GLuint LoadShader_Fragment(const char *filename) {
     return fragment_shader_id;
 }
 
-// Função auxilar, utilizada pelas duas funções acima. Carrega código de GPU de
+// Função auxiliar, utilizada pelas duas funções acima. Carrega código de GPU de
 // um arquivo GLSL e faz sua compilação.
 void LoadShader(const char *filename, GLuint shader_id) {
     // Lemos o arquivo de texto indicado pela variável "filename"
@@ -733,7 +733,7 @@ void LoadShader(const char *filename, GLuint shader_id) {
         file.exceptions(std::ifstream::failbit);
         file.open(filename);
     } catch (std::exception &e) {
-        fprintf(stderr, "ERROR: Cannot open file \"%s\".\n", filename);
+        std::cerr << "ERROR: Cannot open file \"" << filename << "\".\n";
         std::exit(EXIT_FAILURE);
     }
     std::stringstream shader;
@@ -756,11 +756,10 @@ void LoadShader(const char *filename, GLuint shader_id) {
     glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &log_length);
 
     // Alocamos memória para guardar o log de compilação.
-    // A chamada "new" em C++ é equivalente ao "malloc()" do C.
     auto *log = new GLchar[log_length];
     glGetShaderInfoLog(shader_id, log_length, &log_length, log);
 
-    // Imprime no terminal qualquer erro ou "warning" de compilação
+    // Imprime qualquer erro no terminal ou "warning" de compilação
     if (log_length != 0) {
         std::string output;
 
@@ -780,7 +779,7 @@ void LoadShader(const char *filename, GLuint shader_id) {
             output += "== End of compilation log\n";
         }
 
-        fprintf(stderr, "%s", output.c_str());
+        std::cerr << output;
     }
 
     delete[] log;
@@ -849,7 +848,7 @@ void FramebufferSizeCallback(GLFWwindow *window, int width, int height) {
     // tal que não ocorra distorções durante o processo de "Screen Mapping"
     // acima, quando NDC é mapeado para coordenadas de pixels. Veja slides 205-215 do documento Aula_09_Projecoes.pdf.
     //
-    // O cast para float é necessário pois números inteiros são arredondados ao
+    // O cast para float é necessário, pois números inteiros são arredondados ao
     // serem divididos!
     g_ScreenRatio = static_cast<float>(width) / static_cast<float>(height);
 }
@@ -860,7 +859,7 @@ void FramebufferSizeCallback(GLFWwindow *window, int width, int height) {
 double g_LastCursorPosX, g_LastCursorPosY;
 
 // Função callback chamada sempre que o usuário aperta algum dos botões do mouse
-void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
+void MouseButtonCallback(GLFWwindow *window, int button, int action, int  /*mods*/) {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         // Se o usuário pressionou o botão esquerdo do mouse, guardamos a
         // posição atual do cursor nas variáveis g_LastCursorPosX e
@@ -924,8 +923,8 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos) {
         g_CameraPhi += 0.01f * dy;
 
         // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
-        float phimax = M_PI / 2;
-        float phimin = -phimax;
+        constexpr float phimax = M_PI / 2;
+        constexpr float phimin = -phimax;
 
         if (g_CameraPhi > phimax) {
             g_CameraPhi = phimax;
@@ -1064,7 +1063,7 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
 }
 
 // Definimos o callback para impressão de erros da GLFW no terminal
-void ErrorCallback(int error, const char *description) { fprintf(stderr, "ERROR: GLFW: %s\n", description); }
+void ErrorCallback(int  /*error*/, const char *description) { fprintf(stderr, "ERROR: GLFW: %s\n", description); }
 
 // Esta função recebe um vértice com coordenadas de modelo p_model e passa o
 // mesmo por todos os sistemas de coordenadas armazenados nas matrizes model,
