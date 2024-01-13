@@ -116,9 +116,9 @@ std::stack<glm::mat4> g_MatrixStack;
 float g_ScreenRatio = 1.0f;
 
 // Ângulos de Euler que controlam a rotação de um dos cubos da cena virtual
-float g_AngleX = 0.0f;
-float g_AngleY = 0.0f;
-float g_AngleZ = 0.0f;
+float angleX_  = 0.0f;
+float angleY_  = 0.0f;
+float angleZ_  = 0.0f;
 
 // "g_LeftMouseButtonPressed = true" se o usuário está com o botão esquerdo do mouse
 // pressionado no momento atual. Veja função MouseButtonCallback().
@@ -130,9 +130,9 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
-float g_CameraTheta = 0.0f; // Ângulo no plano ZX em relação ao eixo Z
-float g_CameraPhi = 0.0f;   // Ângulo em relação ao eixo Y
-float g_CameraDistance = 3.5f; // Distância da câmera para a origem
+float cameraTheta_     = 0.0f; // Ângulo no plano ZX em relação ao eixo Z
+float cameraPhi_       = 0.0f;   // Ângulo em relação ao eixo Y
+float cameraDistance_  = 3.5f; // Distância da câmera para a origem
 
 // Variáveis que controlam rotação do antebraço
 float g_ForearmAngleZ = 0.0f;
@@ -143,7 +143,7 @@ float g_TorsoPositionX = 0.0f;
 float g_TorsoPositionY = 0.0f;
 
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
-bool g_UsePerspectiveProjection = true;
+bool usePerspectiveProjection_ = true;
 
 // Variável que controla se o texto informativo será mostrado na tela.
 bool g_ShowInfoText = true;
@@ -275,10 +275,10 @@ int main() {
 		// variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
 		// controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
 		// e ScrollCallback().
-		float r = g_CameraDistance;
-		float y = r*sin(g_CameraPhi);
-		float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
-		float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
+		float r = cameraDistance_;
+		float y = r*sin(cameraPhi_);
+		float z = r*cos(cameraPhi_)*cos(cameraTheta_);
+		float x = r*cos(cameraPhi_)*sin(cameraTheta_);
 
 		// Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
 		// Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
@@ -302,7 +302,7 @@ int main() {
 		float nearplane = -0.1f;  // Posição do "near plane"
 		float farplane = -10.0f; // Posição do "far plane"
 
-		if (g_UsePerspectiveProjection) {
+		if (usePerspectiveProjection_) {
 			// Projeção Perspectiva.
 			// Para definição do field of view (FOV), veja slides 205-215 do documento Aula_09_Projecoes.pdf.
 			float field_of_view = M_PI/3.0f;
@@ -313,7 +313,7 @@ int main() {
 			// PARA PROJEÇÃO ORTOGRÁFICA veja slides 219-224 do documento Aula_09_Projecoes.pdf.
 			// Para simular um "zoom" ortográfico, computamos o valor de "t"
 			// utilizando a variável g_CameraDistance.
-			float t = 1.5f*g_CameraDistance/2.5f;
+			float t = 1.5f* cameraDistance_ /2.5f;
 			float b = -t;
 			float r = t*g_ScreenRatio;
 			float l = -r;
@@ -369,9 +369,9 @@ int main() {
 			PushMatrix(model); // Guardamos matriz model atual na pilha
 			{
 				model = model // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
-					*Matrix_Rotate_Z(g_AngleZ)  // TERCEIRO rotação Z de Euler
-					*Matrix_Rotate_Y(g_AngleY)  // SEGUNDO rotação Y de Euler
-					*Matrix_Rotate_X(g_AngleX); // PRIMEIRO rotação X de Euler
+					*Matrix_Rotate_Z(angleZ_)  // TERCEIRO rotação Z de Euler
+					*Matrix_Rotate_Y(angleY_)  // SEGUNDO rotação Y de Euler
+					*Matrix_Rotate_X(angleX_); // PRIMEIRO rotação X de Euler
 				PushMatrix(model); // Guardamos matriz model atual na pilha
 				{
 					model = model*Matrix_Scale(0.2f,
@@ -428,9 +428,9 @@ int main() {
 			PushMatrix(model);
 			{
 				model = model
-					*Matrix_Rotate_Z(g_AngleZ)
-					*Matrix_Rotate_Y(g_AngleY)
-					*Matrix_Rotate_X(-g_AngleX);
+					*Matrix_Rotate_Z(angleZ_)
+					*Matrix_Rotate_Y(angleY_)
+					*Matrix_Rotate_X(-angleX_);
 				PushMatrix(model);
 				{
 					model = model*Matrix_Scale(-0.3f,
@@ -453,9 +453,9 @@ int main() {
 			PushMatrix(model);
 			{
 				model = model
-					*Matrix_Rotate_Z(g_AngleZ)
-					*Matrix_Rotate_Y(g_AngleY)
-					*Matrix_Rotate_X(g_AngleX);
+					*Matrix_Rotate_Z(angleZ_)
+					*Matrix_Rotate_Y(angleY_)
+					*Matrix_Rotate_X(angleX_);
 				PushMatrix(model);
 				{
 					model = model*Matrix_Scale(0.2f,
@@ -1260,19 +1260,19 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos) {
 		float dy = ypos - g_LastCursorPosY;
 
 		// Atualizamos parâmetros da câmera com os deslocamentos
-		g_CameraTheta -= 0.01f*dx;
-		g_CameraPhi += 0.01f*dy;
+                cameraTheta_ -= 0.01f*dx;
+                cameraPhi_ += 0.01f*dy;
 
 		// Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
 		float phimax = M_PI/2;
 		float phimin = -phimax;
 
-		if (g_CameraPhi > phimax) {
-			g_CameraPhi = phimax;
+		if (cameraPhi_ > phimax) {
+                    cameraPhi_ = phimax;
 		}
 
-		if (g_CameraPhi < phimin) {
-			g_CameraPhi = phimin;
+		if (cameraPhi_ < phimin) {
+                    cameraPhi_ = phimin;
 		}
 
 		// Atualizamos as variáveis globais para armazenar a posição atual do
@@ -1316,7 +1316,7 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos) {
 void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
 	// Atualizamos a distância da câmera para a origem utilizando a
 	// movimentação da "rodinha", simulando um ZOOM.
-	g_CameraDistance -= 0.1f*yoffset;
+        cameraDistance_ -= 0.1f*yoffset;
 
 	// Uma câmera look-at nunca pode estar exatamente "em cima" do ponto para
 	// onde ela está olhando, pois isto gera problemas de divisão por zero na
@@ -1324,8 +1324,8 @@ void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
 	// nunca pode ser zero. Versões anteriores deste código possuíam este bug,
 	// o qual foi detectado pelo aluno Vinicius Fraga (2017/2).
 	const float verysmallnumber = std::numeric_limits<float>::epsilon();
-	if (g_CameraDistance < verysmallnumber) {
-		g_CameraDistance = verysmallnumber;
+	if (cameraDistance_ < verysmallnumber) {
+            cameraDistance_ = verysmallnumber;
 	}
 }
 
@@ -1358,20 +1358,20 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
 	float delta = M_PI/16; // 22.5 graus, em radianos.
 
 	if (key==GLFW_KEY_X && action==GLFW_PRESS) {
-		g_AngleX += (mod & GLFW_MOD_SHIFT)!=0 ? -delta : delta;
+            angleX_ += (mod & GLFW_MOD_SHIFT)!=0 ? -delta : delta;
 	}
 	if (key==GLFW_KEY_Y && action==GLFW_PRESS) {
-		g_AngleY += (mod & GLFW_MOD_SHIFT)!=0 ? -delta : delta;
+            angleY_ += (mod & GLFW_MOD_SHIFT)!=0 ? -delta : delta;
 	}
 	if (key==GLFW_KEY_Z && action==GLFW_PRESS) {
-		g_AngleZ += (mod & GLFW_MOD_SHIFT)!=0 ? -delta : delta;
+            angleZ_ += (mod & GLFW_MOD_SHIFT)!=0 ? -delta : delta;
 	}
 
 	// Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
 	if (key==GLFW_KEY_SPACE && action==GLFW_PRESS) {
-		g_AngleX = 0.0f;
-		g_AngleY = 0.0f;
-		g_AngleZ = 0.0f;
+            angleX_          = 0.0f;
+            angleY_          = 0.0f;
+            angleZ_          = 0.0f;
 		g_ForearmAngleX = 0.0f;
 		g_ForearmAngleZ = 0.0f;
 		g_TorsoPositionX = 0.0f;
@@ -1380,12 +1380,12 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
 
 	// Se o usuário apertar a tecla P, utilizamos projeção perspectiva.
 	if (key==GLFW_KEY_P && action==GLFW_PRESS) {
-		g_UsePerspectiveProjection = true;
+            usePerspectiveProjection_ = true;
 	}
 
 	// Se o usuário apertar a tecla O, utilizamos projeção ortográfica.
 	if (key==GLFW_KEY_O && action==GLFW_PRESS) {
-		g_UsePerspectiveProjection = false;
+            usePerspectiveProjection_ = false;
 	}
 
 	// Se o usuário apertar a tecla H, fazemos um "toggle" do texto informativo mostrado na tela.
@@ -1495,7 +1495,7 @@ void TextRendering_ShowEulerAngles(GLFWwindow *window) {
 	float pad = TextRendering_LineHeight(window);
 
 	char buffer[80];
-	snprintf(buffer, 80, "Euler Angles rotation matrix = Z(%.2f)*Y(%.2f)*X(%.2f)\n", g_AngleZ, g_AngleY, g_AngleX);
+	snprintf(buffer, 80, "Euler Angles rotation matrix = Z(%.2f)*Y(%.2f)*X(%.2f)\n", angleZ_, angleY_, angleX_);
 
 	TextRendering_PrintString(window, buffer, -1.0f + pad/10, -1.0f + 2*pad/10, 1.0f);
 }
@@ -1509,7 +1509,7 @@ void TextRendering_ShowProjection(GLFWwindow *window) {
 	float lineheight = TextRendering_LineHeight(window);
 	float charwidth = TextRendering_CharWidth(window);
 
-	if (g_UsePerspectiveProjection) {
+	if (usePerspectiveProjection_) {
 		TextRendering_PrintString(window, "Perspective", 1.0f - 13*charwidth, -1.0f + 2*lineheight/10, 1.0f);
 	} else {
 		TextRendering_PrintString(window, "Orthographic", 1.0f - 13*charwidth, -1.0f + 2*lineheight/10, 1.0f);

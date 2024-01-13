@@ -174,9 +174,9 @@ std::stack<glm::mat4> g_MatrixStack;
 float g_ScreenRatio = 1.0f;
 
 // Ângulos de Euler que controlam a rotação de um dos cubos da cena virtual
-float g_AngleX = 0.0f;
-float g_AngleY = 0.0f;
-float g_AngleZ = 0.0f;
+float angleX_ = 0.0f;
+float angleY_ = 0.0f;
+float angleZ_ = 0.0f;
 
 // "g_LeftMouseButtonPressed = true" se o usuário está com o botão esquerdo do mouse
 // pressionado agora. Veja função MouseButtonCallback().
@@ -188,9 +188,9 @@ bool g_MiddleMouseButtonPressed = false;  // Análogo para botão do meio do mou
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
-float g_CameraTheta    = 0.0f;  // Ângulo no plano ZX em relação ao eixo Z
-float g_CameraPhi      = 0.0f;  // Ângulo em relação ao eixo Y
-float g_CameraDistance = 3.5f;  // Distância da câmera para a origem
+float cameraTheta_    = 0.0f;  // Ângulo no plano ZX em relação ao eixo Z
+float cameraPhi_      = 0.0f;  // Ângulo em relação ao eixo Y
+float cameraDistance_ = 3.5f;  // Distância da câmera para a origem
 
 // Variáveis que controlam rotação do antebraço
 float g_ForearmAngleZ = 0.0f;
@@ -201,7 +201,7 @@ float g_TorsoPositionX = 0.0f;
 float g_TorsoPositionY = 0.0f;
 
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
-bool g_UsePerspectiveProjection = true;
+bool usePerspectiveProjection_ = true;
 
 // Variável que controla se o texto informativo será mostrado na tela.
 bool g_ShowInfoText = true;
@@ -346,10 +346,10 @@ int main(int argc, char* argv[]) {
         // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
         // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
         // e ScrollCallback().
-        float r = g_CameraDistance;
-        float y = r * sin(g_CameraPhi);
-        float z = r * cos(g_CameraPhi) * cos(g_CameraTheta);
-        float x = r * cos(g_CameraPhi) * sin(g_CameraTheta);
+        float r = cameraDistance_;
+        float y = r * sin(cameraPhi_);
+        float z = r * cos(cameraPhi_) * cos(cameraTheta_);
+        float x = r * cos(cameraPhi_) * sin(cameraTheta_);
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
@@ -374,7 +374,7 @@ int main(int argc, char* argv[]) {
         float nearplane = -0.1f;   // Posição do "near plane"
         float farplane  = -10.0f;  // Posição do "far plane"
 
-        if (g_UsePerspectiveProjection) {
+        if (usePerspectiveProjection_) {
             // Projeção Perspectiva.
             // Para definição do field of view (FOV), veja slides 205-215 do documento Aula_09_Projecoes.pdf.
             float field_of_view = M_PI / 3.0f;
@@ -385,7 +385,7 @@ int main(int argc, char* argv[]) {
             // PARA PROJEÇÃO ORTOGRÁFICA veja slides 219-224 do documento Aula_09_Projecoes.pdf.
             // Para simular um "zoom" ortográfico, computamos o valor de "t"
             // utilizando a variável g_CameraDistance.
-            float t    = 1.5f * g_CameraDistance / 2.5f;
+            float t    = 1.5f * cameraDistance_ / 2.5f;
             float b    = -t;
             float r    = t * g_ScreenRatio;
             float l    = -r;
@@ -406,14 +406,14 @@ int main(int argc, char* argv[]) {
 
         // Desenhamos o modelo da esfera
         model = Matrix_Translate(-1.0f, 0.0f, 0.0f) * Matrix_Rotate_Z(0.6f) * Matrix_Rotate_X(0.2f) *
-                Matrix_Rotate_Y(g_AngleY + static_cast<float>(glfwGetTime()) * 0.1f);
+                Matrix_Rotate_Y(angleY_ + static_cast<float>(glfwGetTime()) * 0.1f);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, SPHERE);
         DrawVirtualObject("the_sphere");
 
         // Desenhamos o modelo do coelho
         model =
-            Matrix_Translate(1.0f, 0.0f, 0.0f) * Matrix_Rotate_X(g_AngleX + static_cast<float>(glfwGetTime()) * 0.1f);
+            Matrix_Translate(1.0f, 0.0f, 0.0f) * Matrix_Rotate_X(angleX_ + static_cast<float>(glfwGetTime()) * 0.1f);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, BUNNY);
         DrawVirtualObject("the_bunny");
@@ -528,9 +528,7 @@ void DrawVirtualObject(const char* object_name) {
     // g_VirtualScene[""] dentro da função BuildTrianglesAndAddToVirtualScene(), e veja
     // a documentação da função glDrawElements() em
     // http://docs.gl/gl3/glDrawElements.
-    glDrawElements(g_VirtualScene[object_name].rendering_mode,
-                   g_VirtualScene[object_name].num_indices,
-                   GL_UNSIGNED_INT,
+    glDrawElements(g_VirtualScene[object_name].rendering_mode, g_VirtualScene[object_name].num_indices, GL_UNSIGNED_INT,
                    reinterpret_cast<void*>(g_VirtualScene[object_name].first_index * sizeof(GLuint)));
 
     // "Desligamos" o VAO, evitando assim que operações posteriores alterem
@@ -772,7 +770,7 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model) {
         GLuint VBO_texture_coefficients_id;
         glGenBuffers(1, &VBO_texture_coefficients_id);
         glBindBuffer(GL_ARRAY_BUFFER, VBO_texture_coefficients_id);
-        glBufferData(GL_ARRAY_BUFFER, texture_coefficients.size() * sizeof(float), NULL, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, texture_coefficients.size() * sizeof(float), nullptr, GL_STATIC_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, texture_coefficients.size() * sizeof(float), texture_coefficients.data());
         location             = 2;  // "(location = 1)" em "shader_vertex.glsl"
         number_of_dimensions = 2;  // vec2 em "shader_vertex.glsl"
@@ -1019,19 +1017,19 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
         float dy = ypos - g_LastCursorPosY;
 
         // Atualizamos parâmetros da câmera com os deslocamentos
-        g_CameraTheta -= 0.01f * dx;
-        g_CameraPhi += 0.01f * dy;
+        cameraTheta_ -= 0.01f * dx;
+        cameraPhi_ += 0.01f * dy;
 
         // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
         constexpr float phimax = M_PI / 2;
         constexpr float phimin = -phimax;
 
-        if (g_CameraPhi > phimax) {
-            g_CameraPhi = phimax;
+        if (cameraPhi_ > phimax) {
+            cameraPhi_ = phimax;
         }
 
-        if (g_CameraPhi < phimin) {
-            g_CameraPhi = phimin;
+        if (cameraPhi_ < phimin) {
+            cameraPhi_ = phimin;
         }
 
         // Atualizamos as variáveis globais para armazenar a posição atual do
@@ -1075,7 +1073,7 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     // Atualizamos a distância da câmera para a origem utilizando a
     // movimentação da "rodinha", simulando um ZOOM.
-    g_CameraDistance -= 0.1f * yoffset;
+    cameraDistance_ -= 0.1f * yoffset;
 
     // Uma câmera look-at nunca pode estar exatamente "em cima" do ponto para
     // onde ela está olhando, pois isto gera problemas de divisão por zero na
@@ -1083,8 +1081,8 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     // nunca pode ser zero. Versões anteriores deste código possuíam este bug,
     // o qual foi detectado pelo aluno Vinicius Fraga (2017/2).
     constexpr float verysmallnumber = std::numeric_limits<float>::epsilon();
-    if (g_CameraDistance < verysmallnumber) {
-        g_CameraDistance = verysmallnumber;
+    if (cameraDistance_ < verysmallnumber) {
+        cameraDistance_ = verysmallnumber;
     }
 }
 
@@ -1117,21 +1115,21 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     float delta = M_PI / 16;  // 22.5 graus, em radianos.
 
     if (key == GLFW_KEY_X && action == GLFW_PRESS) {
-        g_AngleX += (mod & GLFW_MOD_SHIFT) != 0 ? -delta : delta;
+        angleX_ += (mod & GLFW_MOD_SHIFT) != 0 ? -delta : delta;
     }
 
     if (key == GLFW_KEY_Y && action == GLFW_PRESS) {
-        g_AngleY += (mod & GLFW_MOD_SHIFT) != 0 ? -delta : delta;
+        angleY_ += (mod & GLFW_MOD_SHIFT) != 0 ? -delta : delta;
     }
     if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
-        g_AngleZ += (mod & GLFW_MOD_SHIFT) != 0 ? -delta : delta;
+        angleZ_ += (mod & GLFW_MOD_SHIFT) != 0 ? -delta : delta;
     }
 
     // Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
-        g_AngleX         = 0.0f;
-        g_AngleY         = 0.0f;
-        g_AngleZ         = 0.0f;
+        angleX_          = 0.0f;
+        angleY_          = 0.0f;
+        angleZ_          = 0.0f;
         g_ForearmAngleX  = 0.0f;
         g_ForearmAngleZ  = 0.0f;
         g_TorsoPositionX = 0.0f;
@@ -1140,12 +1138,12 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
 
     // Se o usuário apertar a tecla P, utilizamos projeção perspectiva.
     if (key == GLFW_KEY_P && action == GLFW_PRESS) {
-        g_UsePerspectiveProjection = true;
+        usePerspectiveProjection_ = true;
     }
 
     // Se o usuário apertar a tecla O, utilizamos projeção ortográfica.
     if (key == GLFW_KEY_O && action == GLFW_PRESS) {
-        g_UsePerspectiveProjection = false;
+        usePerspectiveProjection_ = false;
     }
 
     // Se o usuário apertar a tecla H, fazemos um "toggle" do texto informativo mostrado na tela.
@@ -1189,16 +1187,16 @@ void TextRendering_ShowModelViewProjection(GLFWwindow* window, glm::mat4 project
     TextRendering_PrintString(window, "                            .-----------'  ", -1.0f, 1.0f - 7 * pad, 1.0f);
     TextRendering_PrintString(window, "                            V              ", -1.0f, 1.0f - 8 * pad, 1.0f);
 
-    TextRendering_PrintString(
-        window, " View matrix              World     In Camera Coords.", -1.0f, 1.0f - 9 * pad, 1.0f);
+    TextRendering_PrintString(window, " View matrix              World     In Camera Coords.", -1.0f, 1.0f - 9 * pad,
+                              1.0f);
     TextRendering_PrintMatrixVectorProduct(window, view, p_world, -1.0f, 1.0f - 10 * pad, 1.0f);
 
     TextRendering_PrintString(window, "                                        |  ", -1.0f, 1.0f - 14 * pad, 1.0f);
     TextRendering_PrintString(window, "                            .-----------'  ", -1.0f, 1.0f - 15 * pad, 1.0f);
     TextRendering_PrintString(window, "                            V              ", -1.0f, 1.0f - 16 * pad, 1.0f);
 
-    TextRendering_PrintString(
-        window, " Projection matrix        Camera                    In NDC", -1.0f, 1.0f - 17 * pad, 1.0f);
+    TextRendering_PrintString(window, " Projection matrix        Camera                    In NDC", -1.0f,
+                              1.0f - 17 * pad, 1.0f);
     TextRendering_PrintMatrixVectorProductDivW(window, projection, p_camera, -1.0f, 1.0f - 18 * pad, 1.0f);
 
     int width, height;
@@ -1209,32 +1207,19 @@ void TextRendering_ShowModelViewProjection(GLFWwindow* window, glm::mat4 project
     glm::vec2 p = glm::vec2(0, 0);
     glm::vec2 q = glm::vec2(width, height);
 
-    glm::mat4 viewport_mapping = Matrix((q.x - p.x) / (b.x - a.x),
-                                        0.0f,
-                                        0.0f,
-                                        (b.x * p.x - a.x * q.x) / (b.x - a.x),
-                                        0.0f,
-                                        (q.y - p.y) / (b.y - a.y),
-                                        0.0f,
-                                        (b.y * p.y - a.y * q.y) / (b.y - a.y),
-                                        0.0f,
-                                        0.0f,
-                                        1.0f,
-                                        0.0f,
-                                        0.0f,
-                                        0.0f,
-                                        0.0f,
-                                        1.0f);
+    glm::mat4 viewport_mapping = Matrix((q.x - p.x) / (b.x - a.x), 0.0f, 0.0f, (b.x * p.x - a.x * q.x) / (b.x - a.x),
+                                        0.0f, (q.y - p.y) / (b.y - a.y), 0.0f, (b.y * p.y - a.y * q.y) / (b.y - a.y),
+                                        0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 
-    TextRendering_PrintString(
-        window, "                                                       |  ", -1.0f, 1.0f - 22 * pad, 1.0f);
-    TextRendering_PrintString(
-        window, "                            .--------------------------'  ", -1.0f, 1.0f - 23 * pad, 1.0f);
-    TextRendering_PrintString(
-        window, "                            V                           ", -1.0f, 1.0f - 24 * pad, 1.0f);
+    TextRendering_PrintString(window, "                                                       |  ", -1.0f,
+                              1.0f - 22 * pad, 1.0f);
+    TextRendering_PrintString(window, "                            .--------------------------'  ", -1.0f,
+                              1.0f - 23 * pad, 1.0f);
+    TextRendering_PrintString(window, "                            V                           ", -1.0f,
+                              1.0f - 24 * pad, 1.0f);
 
-    TextRendering_PrintString(
-        window, " Viewport matrix           NDC      In Pixel Coords.", -1.0f, 1.0f - 25 * pad, 1.0f);
+    TextRendering_PrintString(window, " Viewport matrix           NDC      In Pixel Coords.", -1.0f, 1.0f - 25 * pad,
+                              1.0f);
     TextRendering_PrintMatrixVectorProductMoreDigits(window, viewport_mapping, p_ndc, -1.0f, 1.0f - 26 * pad, 1.0f);
 }
 
@@ -1248,7 +1233,7 @@ void TextRendering_ShowEulerAngles(GLFWwindow* window) {
     float pad = TextRendering_LineHeight(window);
 
     char buffer[80];
-    snprintf(buffer, 80, "Euler Angles rotation matrix = Z(%.2f)*Y(%.2f)*X(%.2f)\n", g_AngleZ, g_AngleY, g_AngleX);
+    snprintf(buffer, 80, "Euler Angles rotation matrix = Z(%.2f)*Y(%.2f)*X(%.2f)\n", angleZ_, angleY_, angleX_);
 
     TextRendering_PrintString(window, buffer, -1.0f + pad / 10, -1.0f + 2 * pad / 10, 1.0f);
 }
@@ -1262,7 +1247,7 @@ void TextRendering_ShowProjection(GLFWwindow* window) {
     float lineheight = TextRendering_LineHeight(window);
     float charwidth  = TextRendering_CharWidth(window);
 
-    if (g_UsePerspectiveProjection) {
+    if (usePerspectiveProjection_) {
         TextRendering_PrintString(window, "Perspective", 1.0f - 13 * charwidth, -1.0f + 2 * lineheight / 10, 1.0f);
     } else {
         TextRendering_PrintString(window, "Orthographic", 1.0f - 13 * charwidth, -1.0f + 2 * lineheight / 10, 1.0f);
@@ -1319,41 +1304,33 @@ void PrintObjModelInfo(ObjModel* model) {
     printf("# of materials : %d\n", static_cast<int>(materials.size()));
 
     for (size_t v = 0; v < attrib.vertices.size() / 3; v++) {
-        printf("  v[%ld] = (%f, %f, %f)\n",
-               static_cast<long>(v),
-               static_cast<const double>(attrib.vertices[3 * v + 0]),
+        printf("  v[%ld] = (%f, %f, %f)\n", static_cast<long>(v), static_cast<const double>(attrib.vertices[3 * v + 0]),
                static_cast<const double>(attrib.vertices[3 * v + 1]),
                static_cast<const double>(attrib.vertices[3 * v + 2]));
     }
 
     for (size_t v = 0; v < attrib.normals.size() / 3; v++) {
-        printf("  n[%ld] = (%f, %f, %f)\n",
-               static_cast<long>(v),
-               static_cast<const double>(attrib.normals[3 * v + 0]),
+        printf("  n[%ld] = (%f, %f, %f)\n", static_cast<long>(v), static_cast<const double>(attrib.normals[3 * v + 0]),
                static_cast<const double>(attrib.normals[3 * v + 1]),
                static_cast<const double>(attrib.normals[3 * v + 2]));
     }
 
     for (size_t v = 0; v < attrib.texcoords.size() / 2; v++) {
-        printf("  uv[%ld] = (%f, %f)\n",
-               static_cast<long>(v),
-               static_cast<const double>(attrib.texcoords[2 * v + 0]),
+        printf("  uv[%ld] = (%f, %f)\n", static_cast<long>(v), static_cast<const double>(attrib.texcoords[2 * v + 0]),
                static_cast<const double>(attrib.texcoords[2 * v + 1]));
     }
 
     // For each shape
     for (size_t i = 0; i < shapes.size(); i++) {
         printf("shape[%ld].name = %s\n", static_cast<long>(i), shapes[i].name.c_str());
-        printf("Size of shape[%ld].indices: %lu\n",
-               static_cast<long>(i),
+        printf("Size of shape[%ld].indices: %lu\n", static_cast<long>(i),
                static_cast<unsigned long>(shapes[i].mesh.indices.size()));
 
         size_t index_offset = 0;
 
         assert(shapes[i].mesh.num_face_vertices.size() == shapes[i].mesh.material_ids.size());
 
-        printf("shape[%ld].num_faces: %lu\n",
-               static_cast<long>(i),
+        printf("shape[%ld].num_faces: %lu\n", static_cast<long>(i),
                static_cast<unsigned long>(shapes[i].mesh.num_face_vertices.size()));
 
         // For each face
@@ -1365,12 +1342,8 @@ void PrintObjModelInfo(ObjModel* model) {
             // For each vertex in the face
             for (size_t v = 0; v < fnum; v++) {
                 tinyobj::index_t idx = shapes[i].mesh.indices[index_offset + v];
-                printf("    face[%ld].v[%ld].idx = %d/%d/%d\n",
-                       static_cast<long>(f),
-                       static_cast<long>(v),
-                       idx.vertex_index,
-                       idx.normal_index,
-                       idx.texcoord_index);
+                printf("    face[%ld].v[%ld].idx = %d/%d/%d\n", static_cast<long>(f), static_cast<long>(v),
+                       idx.vertex_index, idx.normal_index, idx.texcoord_index);
             }
 
             printf("  face[%ld].material_id = %d\n", static_cast<long>(f), shapes[i].mesh.material_ids[f]);
@@ -1378,8 +1351,8 @@ void PrintObjModelInfo(ObjModel* model) {
             index_offset += fnum;
         }
 
-        printf(
-            "shape[%ld].num_tags: %lu\n", static_cast<long>(i), static_cast<unsigned long>(shapes[i].mesh.tags.size()));
+        printf("shape[%ld].num_tags: %lu\n", static_cast<long>(i),
+               static_cast<unsigned long>(shapes[i].mesh.tags.size()));
         for (size_t t = 0; t < shapes[i].mesh.tags.size(); t++) {
             printf("  tag[%ld] = %s ", static_cast<long>(t), shapes[i].mesh.tags[t].name.c_str());
             printf(" ints: [");
@@ -1414,24 +1387,17 @@ void PrintObjModelInfo(ObjModel* model) {
 
     for (size_t i = 0; i < materials.size(); i++) {
         printf("material[%ld].name = %s\n", static_cast<long>(i), materials[i].name.c_str());
-        printf("  material.Ka = (%f, %f ,%f)\n",
-               static_cast<const double>(materials[i].ambient[0]),
-               static_cast<const double>(materials[i].ambient[1]),
-               static_cast<const double>(materials[i].ambient[2]));
-        printf("  material.Kd = (%f, %f ,%f)\n",
-               static_cast<const double>(materials[i].diffuse[0]),
-               static_cast<const double>(materials[i].diffuse[1]),
-               static_cast<const double>(materials[i].diffuse[2]));
-        printf("  material.Ks = (%f, %f ,%f)\n",
-               static_cast<const double>(materials[i].specular[0]),
+        printf("  material.Ka = (%f, %f ,%f)\n", static_cast<const double>(materials[i].ambient[0]),
+               static_cast<const double>(materials[i].ambient[1]), static_cast<const double>(materials[i].ambient[2]));
+        printf("  material.Kd = (%f, %f ,%f)\n", static_cast<const double>(materials[i].diffuse[0]),
+               static_cast<const double>(materials[i].diffuse[1]), static_cast<const double>(materials[i].diffuse[2]));
+        printf("  material.Ks = (%f, %f ,%f)\n", static_cast<const double>(materials[i].specular[0]),
                static_cast<const double>(materials[i].specular[1]),
                static_cast<const double>(materials[i].specular[2]));
-        printf("  material.Tr = (%f, %f ,%f)\n",
-               static_cast<const double>(materials[i].transmittance[0]),
+        printf("  material.Tr = (%f, %f ,%f)\n", static_cast<const double>(materials[i].transmittance[0]),
                static_cast<const double>(materials[i].transmittance[1]),
                static_cast<const double>(materials[i].transmittance[2]));
-        printf("  material.Ke = (%f, %f ,%f)\n",
-               static_cast<const double>(materials[i].emission[0]),
+        printf("  material.Ke = (%f, %f ,%f)\n", static_cast<const double>(materials[i].emission[0]),
                static_cast<const double>(materials[i].emission[1]),
                static_cast<const double>(materials[i].emission[2]));
         printf("  material.Ns = %f\n", static_cast<const double>(materials[i].shininess));
