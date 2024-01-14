@@ -46,7 +46,7 @@ void main()
     vec4 l = v;
 
     // Vetor que define o sentido da reflexão especular ideal.
-    vec4 r = -l + 2*n*dot(n, l);
+    vec4 r = -l + 2 * n * dot(n, l);
 
     // Parâmetros que definem as propriedades espectrais da superfície
     vec3 Kd;// Refletância difusa
@@ -99,7 +99,7 @@ void main()
     vec3 ambient_term = Ka * Ia;
 
     // Termo especular utilizando o modelo de iluminação de Phong
-    vec3 phong_specular_term  = Ks * I * pow(max(0, dot(r, v)), q);
+    vec3 phong_specular_term = Ks * I * pow(max(0, dot(r, v)), q);
 
     // NOTE: Se você quiser fazer o rendering de objetos transparentes, é
     // necessário:
@@ -121,6 +121,6 @@ void main()
 
     // Cor final com correção gamma, considerando monitor sRGB.
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
-    color.rgb = pow(color.rgb, vec3(1.0, 1.0, 1.0)/2.2);
+    color.rgb = pow(color.rgb, vec3(1.0, 1.0, 1.0) / 2.2);
 }
 

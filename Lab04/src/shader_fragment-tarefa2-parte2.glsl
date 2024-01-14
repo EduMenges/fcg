@@ -55,7 +55,7 @@ void main()
     vec4 l = normalize(spotlight_l - p);
 
     // Vetor que define o sentido da reflexão especular ideal.
-    vec4 r = -l + 2*n*dot(n, l);
+    vec4 r = -l + 2 * n * dot(n, l);
 
     // Parâmetros que definem as propriedades espectrais da superfície
     vec3 Kd;// Refletância difusa
@@ -108,7 +108,7 @@ void main()
     vec3 ambient_term = Ka * Ia;
 
     // Termo especular utilizando o modelo de iluminação de Phong
-    vec3 phong_specular_term  = Ks * I * pow(max(0, dot(r, v)), q);
+    vec3 phong_specular_term = Ks * I * pow(max(0, dot(r, v)), q);
 
     vec4 pl_normal = normalize(p - spotlight_l);
 
@@ -117,12 +117,12 @@ void main()
     color.a = 1;
 
     if (ponto_esta_iluminado_pela_spotlight)
-        color.rgb = lambert_diffuse_term + ambient_term + phong_specular_term;
+    color.rgb = lambert_diffuse_term + ambient_term + phong_specular_term;
     else
-        color.rgb = ambient_term;
+    color.rgb = ambient_term;
 
     // Cor final com correção gamma, considerando monitor sRGB.
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
-    color.rgb = pow(color.rgb, vec3(1.0, 1.0, 1.0)/2.2);
+    color.rgb = pow(color.rgb, vec3(1.0, 1.0, 1.0) / 2.2);
 }
 

@@ -17,7 +17,7 @@
 
 // Headers das bibliotecas OpenGL
 #include <glad/glad.h>   // Criação de contexto OpenGL 3.3
-#include <GLFW/glfw3.h>  // Criação de janelas do sistema operacional
+#include "glfw/glfw3.h"  // Criação de janelas do sistema operacional
 
 #include <array>
 
@@ -30,7 +30,7 @@ static const GLfloat kExternalRadius = 0.7f;
 static const GLfloat kInternalRadius = 0.5f;
 
 template <typename T, size_t N>
-constexpr size_t totalSize(const std::array<T, N> &collection) {
+constexpr size_t totalSize(const std::array<T, N>& collection) {
     return collection.size() * sizeof(T);
 }
 
@@ -107,7 +107,7 @@ std::array<GLubyte, indexAmount(sides)> donutIndexes() {
     GLubyte j = 0;
     size_t  i = 0;
 
-    for (; i < (sides) * 2; i += 2, ++j) {
+    for (; i < (sides)*2; i += 2, ++j) {
         res[i]     = j;
         res[i + 1] = static_cast<GLubyte>(sides + j);
     }
@@ -123,20 +123,20 @@ std::array<GLubyte, indexAmount(sides)> donutIndexes() {
 GLuint BuildTrianglesForDigitZERO();  // Constrói triângulos para renderização
 void   LoadShadersFromFiles();        // Carrega os shaders de vértice e fragmento,
 // criando um programa de GPU
-GLuint LoadShader_Vertex(const char *filename);    // Carrega um vertex shader
-GLuint LoadShader_Fragment(const char *filename);  // Carrega um fragment shader
-void   LoadShader(const char *filename,
+GLuint LoadShader_Vertex(const char* filename);    // Carrega um vertex shader
+GLuint LoadShader_Fragment(const char* filename);  // Carrega um fragment shader
+void   LoadShader(const char* filename,
                   GLuint      shader_id);  // Função utilizada pelas duas acima
 GLuint CreateGpuProgram(GLuint vertex_shader_id,
                         GLuint fragment_shader_id);  // Cria um programa de GPU
 
 // Funções callback para comunicação com o sistema operacional e interação do
 // usuário. Veja mais comentários nas definições das mesmas, abaixo.
-void FramebufferSizeCallback(GLFWwindow *window, int width, int height);
+void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
 
-void ErrorCallback(int error, const char *description);
+void ErrorCallback(int error, const char* description);
 
-void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod);
+void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod);
 
 // Variáveis que definem um programa de GPU (shaders). Veja função
 // LoadShadersFromFiles().
@@ -168,7 +168,7 @@ int main() {
 
     // Criamos uma janela do sistema operacional, com 500 colunas e 500 linhas
     // de pixels, e com título "INF01047 ...".
-    GLFWwindow *window;
+    GLFWwindow* window;
     window = glfwCreateWindow(500, 500, "INF01047 - 00333482 - Eduardo Menges Mattje", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
@@ -193,10 +193,10 @@ int main() {
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
     // Imprimimos no terminal informações sobre a GPU do sistema
-    const GLubyte *vendor      = glGetString(GL_VENDOR);
-    const GLubyte *renderer    = glGetString(GL_RENDERER);
-    const GLubyte *glversion   = glGetString(GL_VERSION);
-    const GLubyte *glslversion = glGetString(GL_SHADING_LANGUAGE_VERSION);
+    const GLubyte* vendor      = glGetString(GL_VENDOR);
+    const GLubyte* renderer    = glGetString(GL_RENDERER);
+    const GLubyte* glversion   = glGetString(GL_VERSION);
+    const GLubyte* glslversion = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
     printf("GPU: %s, %s, OpenGL %s, GLSL %s\n", vendor, renderer, glversion, glslversion);
 
@@ -426,7 +426,7 @@ GLuint BuildTrianglesForDigitZERO() {
 
 // Carrega um Vertex Shader de um arquivo GLSL. Veja definição de LoadShader()
 // abaixo.
-GLuint LoadShader_Vertex(const char *filename) {
+GLuint LoadShader_Vertex(const char* filename) {
     // Criamos um identificador (ID) para este shader, informando que o mesmo
     // será aplicado nos vértices.
     GLuint vertex_shader_id = glCreateShader(GL_VERTEX_SHADER);
@@ -440,7 +440,7 @@ GLuint LoadShader_Vertex(const char *filename) {
 
 // Carrega um Fragment Shader de um arquivo GLSL . Veja definição de
 // LoadShader() abaixo.
-GLuint LoadShader_Fragment(const char *filename) {
+GLuint LoadShader_Fragment(const char* filename) {
     // Criamos um identificador (ID) para este shader, informando que o mesmo
     // será aplicado nos fragmentos.
     GLuint fragment_shader_id = glCreateShader(GL_FRAGMENT_SHADER);
@@ -454,7 +454,7 @@ GLuint LoadShader_Fragment(const char *filename) {
 
 // Função auxilar, utilizada pelas duas funções acima. Carrega código de GPU de
 // um arquivo GLSL e faz sua compilação.
-void LoadShader(const char *filename, GLuint shader_id) {
+void LoadShader(const char* filename, GLuint shader_id) {
     // Lemos o arquivo de texto indicado pela variável "filename"
     // e colocamos seu conteúdo em memória, apontado pela variável
     // "shader_string".
@@ -462,14 +462,14 @@ void LoadShader(const char *filename, GLuint shader_id) {
     try {
         file.exceptions(std::ifstream::failbit);
         file.open(filename);
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
         fprintf(stderr, "ERROR: Cannot open file \"%s\".\n", filename);
         std::exit(EXIT_FAILURE);
     }
     std::stringstream shader;
     shader << file.rdbuf();
     std::string   str                  = shader.str();
-    const GLchar *shader_string        = str.c_str();
+    const GLchar* shader_string        = str.c_str();
     const auto    shader_string_length = static_cast<GLint>(str.length());
 
     // Define o código do shader GLSL, contido na string "shader_string"
@@ -487,7 +487,7 @@ void LoadShader(const char *filename, GLuint shader_id) {
 
     // Alocamos memória para guardar o log de compilação.
     // A chamada "new" em C++ é equivalente ao "malloc()" do C.
-    auto *log = new GLchar[log_length];
+    auto* log = new GLchar[log_length];
     glGetShaderInfoLog(shader_id, log_length, &log_length, log);
 
     // Imprime no terminal qualquer erro ou "warning" de compilação
@@ -573,7 +573,7 @@ GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id) {
         glGetProgramiv(program_id, GL_INFO_LOG_LENGTH, &log_length);
 
         // Alocamos memória para guardar o log de compilação.
-        auto *log = new GLchar[log_length];
+        auto* log = new GLchar[log_length];
 
         glGetProgramInfoLog(program_id, log_length, &log_length, log);
 
@@ -596,7 +596,7 @@ GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id) {
 // Definição da função que será chamada sempre que a janela do sistema
 // operacional for redimensionada, por consequência alterando o tamanho do
 // "framebuffer" (região de memória onde são armazenados os pixels da imagem).
-void FramebufferSizeCallback(GLFWwindow *window, int width, int height) {
+void FramebufferSizeCallback(GLFWwindow* window, int width, int height) {
     // Indicamos que queremos renderizar em toda região do framebuffer. A
     // função "glViewport" define o mapeamento das "normalized device
     // coordinates" (NDC) para "pixel coordinates".  Essa é a operação de
@@ -608,7 +608,7 @@ void FramebufferSizeCallback(GLFWwindow *window, int width, int height) {
 // Definição da função que será chamada sempre que o usuário pressionar alguma
 // tecla do teclado. Veja
 // http://www.glfw.org/docs/latest/input_guide.html#input_key
-void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod) {
+void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod) {
     // ===================
     // Não modifique este loop! Ele é utilizando para correção automatizada dos
     // laboratórios. Deve ser sempre o primeiro comando desta função
@@ -622,7 +622,7 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
 }
 
 // Definimos o callback para impressão de erros da GLFW no terminal
-void ErrorCallback(int error, const char *description) {
+void ErrorCallback(int error, const char* description) {
     (void)fprintf(stderr, "ERROR %i: GLFW: %s\n", error, description);
 }
 

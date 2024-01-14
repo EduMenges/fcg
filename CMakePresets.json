@@ -4,6 +4,7 @@
         {
             "name": "default",
             "hidden": true,
+            "generator": "Ninja",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE":"Debug"
             },
@@ -27,7 +28,6 @@
                 }
             },
             "inherits": ["default"],
-            "generator": "Ninja",
             "cacheVariables": {
                 "CMAKE_CXX_COMPILER":"C:/msys64/clang64/bin/clang++.exe",
                 "glfw3_DIR" : "C:/msys64/clang64/lib/cmake/glfw3",

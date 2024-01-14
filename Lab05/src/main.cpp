@@ -27,8 +27,8 @@
 #include <iostream>
 
 // Headers das bibliotecas OpenGL
-#include <glad/glad.h>   // Criação de contexto OpenGL 3.3
-#include <GLFW/glfw3.h>  // Criação de janelas do sistema operacional
+#include "glad/glad.h"   // Criação de contexto OpenGL 3.3
+#include "glfw/glfw3.h"  // Criação de janelas do sistema operacional
 
 // Headers da biblioteca GLM: criação de matrizes e vetores.
 #include <glm/mat4x4.hpp>
@@ -36,13 +36,12 @@
 #include <glm/gtc/type_ptr.hpp>
 
 // Headers da biblioteca para carregar modelos obj
+#define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
-#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 // Headers locais, definidos na pasta "include/"
-#include "utils.h"
 #include "matrices.h"
 
 // Estrutura que representa um modelo geométrico carregado a partir de um
@@ -68,7 +67,7 @@ struct ObjModel {
         std::string warn;
         std::string err;
         bool        ret =
-            tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, file_name.c_str(), base_dir, triangulate);
+                tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, file_name.c_str(), base_dir, triangulate);
 
         if (!err.empty()) {
             std::cerr << err << '\n';
@@ -102,7 +101,7 @@ void PopMatrix(glm::mat4& M);
 // Declaração de várias funções utilizadas em main().  Essas estão definidas
 // logo após a definição de main() neste arquivo.
 void BuildTrianglesAndAddToVirtualScene(
-    ObjModel* /*model*/);  // Constrói representação de um ObjModel como malha de triângulos para renderização
+        ObjModel* /*model*/);  // Constrói representação de um ObjModel como malha de triângulos para renderização
 void   ComputeNormals(ObjModel* model);  // Computa normais de um ObjModel, caso não existam.
 void   LoadShadersFromFiles();           // Carrega os shaders de vértice e fragmento, criando um programa de GPU
 void   LoadTextureImage(const char* filename);              // Função que carrega imagens de textura
@@ -150,9 +149,9 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 struct SceneObject {
     std::string name;                  // Nome do objeto
     size_t      first_index;           // Índice do primeiro vértice dentro do vetor indices[] definido em
-                                       // BuildTrianglesAndAddToVirtualScene()
+    // BuildTrianglesAndAddToVirtualScene()
     size_t num_indices;                // Número de índices do objeto dentro do vetor indices[] definido em
-                                       // BuildTrianglesAndAddToVirtualScene()
+    // BuildTrianglesAndAddToVirtualScene()
     GLenum    rendering_mode;          // Modo de rasterização (GL_TRIANGLES, GL_TRIANGLE_STRIP, etc.)
     GLuint    vertex_array_object_id;  // ID do VAO onde estão armazenados os atributos do modelo
     glm::vec3 bbox_min;                // Axis-Aligned Bounding Box do objeto
@@ -218,6 +217,8 @@ GLint  g_bbox_max_uniform;
 // Número de texturas carregadas pela função LoadTextureImage()
 GLuint g_NumLoadedTextures = 0;
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "modernize-macro-to-enum"
 int main(int argc, char* argv[]) {
     // Inicializamos a biblioteca GLFW, utilizada para criar uma janela do
     // sistema operacional, onde poderemos renderizar com OpenGL.
@@ -355,11 +356,11 @@ int main(int argc, char* argv[]) {
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
         glm::vec4 camera_position_c = glm::vec4(x, y, z, 1.0f);  // Ponto "c", centro da câmera
         glm::vec4 camera_lookat_l =
-            glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);  // Ponto "l", para onde a câmera (look-at) estará sempre olhando
+                glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);  // Ponto "l", para onde a câmera (look-at) estará sempre olhando
         glm::vec4 camera_view_vector =
-            camera_lookat_l - camera_position_c;  // Vetor "view", sentido para onde a câmera está virada
+                camera_lookat_l - camera_position_c;  // Vetor "view", sentido para onde a câmera está virada
         glm::vec4 camera_up_vector =
-            glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);  // Vetor "up" fixado para apontar para o "céu" (eito Y global)
+                glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);  // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento
@@ -413,7 +414,7 @@ int main(int argc, char* argv[]) {
 
         // Desenhamos o modelo do coelho
         model =
-            Matrix_Translate(1.0f, 0.0f, 0.0f) * Matrix_Rotate_X(angleX_ + static_cast<float>(glfwGetTime()) * 0.1f);
+                Matrix_Translate(1.0f, 0.0f, 0.0f) * Matrix_Rotate_X(angleX_ + static_cast<float>(glfwGetTime()) * 0.1f);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, BUNNY);
         DrawVirtualObject("the_bunny");
@@ -457,6 +458,7 @@ int main(int argc, char* argv[]) {
     // Fim do programa
     return 0;
 }
+#pragma clang diagnostic pop
 
 // Função que carrega uma imagem para ser utilizada como textura
 void LoadTextureImage(const char* filename) {
@@ -573,9 +575,9 @@ void LoadShadersFromFiles() {
     g_model_uniform = glGetUniformLocation(g_GpuProgramID, "model");  // Variável da matriz "model"
     g_view_uniform  = glGetUniformLocation(g_GpuProgramID, "view");  // Variável da matriz "view" em shader_vertex.glsl
     g_projection_uniform =
-        glGetUniformLocation(g_GpuProgramID, "projection");  // Variável da matriz "projection" em shader_vertex.glsl
+            glGetUniformLocation(g_GpuProgramID, "projection");  // Variável da matriz "projection" em shader_vertex.glsl
     g_object_id_uniform =
-        glGetUniformLocation(g_GpuProgramID, "object_id");  // Variável "object_id" em shader_fragment.glsl
+            glGetUniformLocation(g_GpuProgramID, "object_id");  // Variável "object_id" em shader_fragment.glsl
     g_bbox_min_uniform = glGetUniformLocation(g_GpuProgramID, "bbox_min");
     g_bbox_max_uniform = glGetUniformLocation(g_GpuProgramID, "bbox_max");
 

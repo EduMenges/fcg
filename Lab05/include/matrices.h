@@ -118,7 +118,7 @@ glm::mat4 Matrix_Rotate_Y(float angle)
     float c = cos(angle);
     float s = sin(angle);
     return Matrix(
-         c   , 0.0f ,  s   , 0.0f ,
+        c   , 0.0f ,  s   , 0.0f ,
         0.0f , 1.0f , 0.0f , 0.0f ,
         -s   , 0.0f ,  c   , 0.0f ,
         0.0f , 0.0f , 0.0f , 1.0f
@@ -138,8 +138,8 @@ glm::mat4 Matrix_Rotate_Z(float angle)
     float c = cos(angle);
     float s = sin(angle);
     return Matrix(
-         c   , -s   , 0.0f , 0.0f ,
-         s   ,  c   , 0.0f , 0.0f ,
+        c   , -s   , 0.0f , 0.0f ,
+        s   ,  c   , 0.0f , 0.0f ,
         0.0f , 0.0f , 1.0f , 0.0f ,
         0.0f , 0.0f , 0.0f , 1.0f
     );

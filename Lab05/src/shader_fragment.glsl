@@ -59,7 +59,7 @@ void main()
     vec4 n = normalize(normal);
 
     // Vetor que define o sentido da fonte de luz em relação ao ponto atual.
-    vec4 l = normalize(vec4(1.0, 1.0, 0.0, 0.0));
+    vec4 l = normalize(vec4(1.0,1.0,0.0,0.0));
 
     // Vetor que define o sentido da câmera em relação ao ponto atual.
     vec4 v = normalize(camera_position - p);
@@ -68,7 +68,7 @@ void main()
     float U = 0.0;
     float V = 0.0;
 
-    if (object_id == SPHERE)
+    if ( object_id == SPHERE )
     {
         vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
         float rho = 1.0;
@@ -84,7 +84,7 @@ void main()
         U = (theta + M_PI) / (2 * M_PI);
         V = (phi + M_PI_2) / M_PI;
     }
-    else if (object_id == BUNNY)
+    else if ( object_id == BUNNY )
     {
         float minx = bbox_min.x;
         float maxx = bbox_max.x;
@@ -100,7 +100,7 @@ void main()
         U = (P.x - minx) / (maxx - minx);
         V = (P.y - miny) / (maxy - miny);
     }
-    else if (object_id == PLANE)
+    else if ( object_id == PLANE )
     {
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
         U = texcoords.x;
@@ -108,14 +108,12 @@ void main()
     }
 
     // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
-    vec3 Kd0 = texture(TextureImage0, vec2(U, V)).rgb;
-    vec3 Kd1 = texture(TextureImage1, vec2(U, V)).rgb;
-    vec3 zero = vec3(0,0,0);
+    vec3 Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
 
     // Equação de Iluminação
-    float lambert = max(0, dot(n, l));
+    float lambert = max(0,dot(n,l));
 
-    color.rgb = Kd0 * (lambert + 0.01) + max(vec3(0,0,0), Kd1*(-10 * lambert + 0.80));
+    color.rgb = Kd0 * (lambert + 0.01);
 
     // NOTE: Se você quiser fazer o rendering de objetos transparentes, é
     // necessário:
@@ -133,6 +131,6 @@ void main()
 
     // Cor final com correção gamma, considerando monitor sRGB.
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
-    color.rgb = pow(color.rgb, vec3(1.0, 1.0, 1.0)/2.2);
-}
+    color.rgb = pow(color.rgb, vec3(1.0,1.0,1.0)/2.2);
+} 
 

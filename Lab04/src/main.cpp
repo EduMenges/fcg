@@ -29,7 +29,7 @@
 
 // Headers das bibliotecas OpenGL
 #include <glad/glad.h>   // Criação de contexto OpenGL 3.3
-#include <GLFW/glfw3.h>  // Criação de janelas do sistema operacional
+#include "glfw/glfw3.h"  // Criação de janelas do sistema operacional
 
 // Headers da biblioteca GLM: criação de matrizes e vetores.
 #include <glm/mat4x4.hpp>
@@ -168,9 +168,9 @@ std::stack<glm::mat4> g_MatrixStack;
 float g_ScreenRatio = 1.0f;
 
 // Ângulos de Euler que controlam a rotação de um dos cubos da cena virtual
-float angleX_  = 0.0f;
-float angleY_  = 0.0f;
-float angleZ_  = 0.0f;
+float angleX_ = 0.0f;
+float angleY_ = 0.0f;
+float angleZ_ = 0.0f;
 
 // "g_LeftMouseButtonPressed = true" se o usuário está com o botão esquerdo do mouse
 // pressionado agora. Veja função MouseButtonCallback().
@@ -182,9 +182,9 @@ bool g_MiddleMouseButtonPressed = false;  // Análogo para botão do meio do mou
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
-float cameraTheta_     = 0.0f;  // Ângulo no plano ZX em relação ao eixo Z
-float cameraPhi_       = 0.0f;  // Ângulo em relação ao eixo Y
-float cameraDistance_  = 3.5f;  // Distância da câmera para a origem
+float cameraTheta_    = 0.0f;  // Ângulo no plano ZX em relação ao eixo Z
+float cameraPhi_      = 0.0f;  // Ângulo em relação ao eixo Y
+float cameraDistance_ = 3.5f;  // Distância da câmera para a origem
 
 // Variáveis que controlam rotação do antebraço
 float g_ForearmAngleZ = 0.0f;
@@ -207,7 +207,9 @@ GLint  g_view_uniform;
 GLint  g_projection_uniform;
 GLint  g_object_id_uniform;
 
-int main(int argc, char* argv[]) {
+#pragma clang diagnostic push
+#pragma ide diagnostic   ignored "modernize-macro-to-enum"
+int                      main(int argc, char* argv[]) {
     // Inicializamos a biblioteca GLFW, utilizada para criar uma janela do
     // sistema operacional, onde poderemos renderizar com OpenGL.
     int success = glfwInit();
@@ -442,6 +444,7 @@ int main(int argc, char* argv[]) {
     // Fim do programa
     return 0;
 }
+#pragma clang diagnostic pop
 
 // Função que desenha um objeto armazenado em g_VirtualScene. Veja definição
 // dos objetos na função BuildTrianglesAndAddToVirtualScene().
@@ -456,9 +459,7 @@ void DrawVirtualObject(const char* object_name) {
     // g_VirtualScene[""] dentro da função BuildTrianglesAndAddToVirtualScene(), e veja
     // a documentação da função glDrawElements() em
     // http://docs.gl/gl3/glDrawElements.
-    glDrawElements(g_VirtualScene[object_name].rendering_mode,
-                   g_VirtualScene[object_name].num_indices,
-                   GL_UNSIGNED_INT,
+    glDrawElements(g_VirtualScene[object_name].rendering_mode, g_VirtualScene[object_name].num_indices, GL_UNSIGNED_INT,
                    reinterpret_cast<void*>(g_VirtualScene[object_name].first_index * sizeof(GLuint)));
 
     // "Desligamos" o VAO, evitando assim que operações posteriores alterem
@@ -1097,16 +1098,16 @@ void TextRendering_ShowModelViewProjection(GLFWwindow* window, glm::mat4 project
     TextRendering_PrintString(window, "                            .-----------'  ", -1.0f, 1.0f - 7 * pad, 1.0f);
     TextRendering_PrintString(window, "                            V              ", -1.0f, 1.0f - 8 * pad, 1.0f);
 
-    TextRendering_PrintString(
-        window, " View matrix              World     In Camera Coords.", -1.0f, 1.0f - 9 * pad, 1.0f);
+    TextRendering_PrintString(window, " View matrix              World     In Camera Coords.", -1.0f, 1.0f - 9 * pad,
+                              1.0f);
     TextRendering_PrintMatrixVectorProduct(window, view, p_world, -1.0f, 1.0f - 10 * pad, 1.0f);
 
     TextRendering_PrintString(window, "                                        |  ", -1.0f, 1.0f - 14 * pad, 1.0f);
     TextRendering_PrintString(window, "                            .-----------'  ", -1.0f, 1.0f - 15 * pad, 1.0f);
     TextRendering_PrintString(window, "                            V              ", -1.0f, 1.0f - 16 * pad, 1.0f);
 
-    TextRendering_PrintString(
-        window, " Projection matrix        Camera                    In NDC", -1.0f, 1.0f - 17 * pad, 1.0f);
+    TextRendering_PrintString(window, " Projection matrix        Camera                    In NDC", -1.0f,
+                              1.0f - 17 * pad, 1.0f);
     TextRendering_PrintMatrixVectorProductDivW(window, projection, p_camera, -1.0f, 1.0f - 18 * pad, 1.0f);
 
     int width, height;
@@ -1117,32 +1118,21 @@ void TextRendering_ShowModelViewProjection(GLFWwindow* window, glm::mat4 project
     glm::vec2 p = glm::vec2(0, 0);
     glm::vec2 q = glm::vec2(width, height);
 
-    glm::mat4 viewport_mapping = Matrix((q.x - p.x) / (b.x - a.x),
-                                        0.0f,
-                                        0.0f,
-                                        (b.x * p.x - a.x * q.x) / (b.x - a.x),
-                                        0.0f,
-                                        (q.y - p.y) / (b.y - a.y),
-                                        0.0f,
-                                        (b.y * p.y - a.y * q.y) / (b.y - a.y),
-                                        0.0f,
-                                        0.0f,
-                                        1.0f,
-                                        0.0f,
-                                        0.0f,
-                                        0.0f,
-                                        0.0f,
-                                        1.0f);
+    glm::mat4 viewport_mapping =
+        Matrix((q.x - p.x) / (b.x - a.x), 0.0f, 0.0f, (b.x * p.x - a.x * q.x) / (b.x - a.x),  //
+               0.0f, (q.y - p.y) / (b.y - a.y), 0.0f, (b.y * p.y - a.y * q.y) / (b.y - a.y),  //
+               0.0f, 0.0f, 1.0f, 0.0f,                                                        //
+               0.0f, 0.0f, 0.0f, 1.0f);
 
-    TextRendering_PrintString(
-        window, "                                                       |  ", -1.0f, 1.0f - 22 * pad, 1.0f);
-    TextRendering_PrintString(
-        window, "                            .--------------------------'  ", -1.0f, 1.0f - 23 * pad, 1.0f);
-    TextRendering_PrintString(
-        window, "                            V                           ", -1.0f, 1.0f - 24 * pad, 1.0f);
+    TextRendering_PrintString(window, "                                                       |  ", -1.0f,
+                              1.0f - 22 * pad, 1.0f);
+    TextRendering_PrintString(window, "                            .--------------------------'  ", -1.0f,
+                              1.0f - 23 * pad, 1.0f);
+    TextRendering_PrintString(window, "                            V                           ", -1.0f,
+                              1.0f - 24 * pad, 1.0f);
 
-    TextRendering_PrintString(
-        window, " Viewport matrix           NDC      In Pixel Coords.", -1.0f, 1.0f - 25 * pad, 1.0f);
+    TextRendering_PrintString(window, " Viewport matrix           NDC      In Pixel Coords.", -1.0f, 1.0f - 25 * pad,
+                              1.0f);
     TextRendering_PrintMatrixVectorProductMoreDigits(window, viewport_mapping, p_ndc, -1.0f, 1.0f - 26 * pad, 1.0f);
 }
 
@@ -1227,41 +1217,33 @@ void PrintObjModelInfo(ObjModel* model) {
     printf("# of materials : %d\n", static_cast<int>(materials.size()));
 
     for (size_t v = 0; v < attrib.vertices.size() / 3; v++) {
-        printf("  v[%ld] = (%f, %f, %f)\n",
-               static_cast<long>(v),
-               static_cast<const double>(attrib.vertices[3 * v + 0]),
+        printf("  v[%ld] = (%f, %f, %f)\n", static_cast<long>(v), static_cast<const double>(attrib.vertices[3 * v + 0]),
                static_cast<const double>(attrib.vertices[3 * v + 1]),
                static_cast<const double>(attrib.vertices[3 * v + 2]));
     }
 
     for (size_t v = 0; v < attrib.normals.size() / 3; v++) {
-        printf("  n[%ld] = (%f, %f, %f)\n",
-               static_cast<long>(v),
-               static_cast<const double>(attrib.normals[3 * v + 0]),
+        printf("  n[%ld] = (%f, %f, %f)\n", static_cast<long>(v), static_cast<const double>(attrib.normals[3 * v + 0]),
                static_cast<const double>(attrib.normals[3 * v + 1]),
                static_cast<const double>(attrib.normals[3 * v + 2]));
     }
 
     for (size_t v = 0; v < attrib.texcoords.size() / 2; v++) {
-        printf("  uv[%ld] = (%f, %f)\n",
-               static_cast<long>(v),
-               static_cast<const double>(attrib.texcoords[2 * v + 0]),
+        printf("  uv[%ld] = (%f, %f)\n", static_cast<long>(v), static_cast<const double>(attrib.texcoords[2 * v + 0]),
                static_cast<const double>(attrib.texcoords[2 * v + 1]));
     }
 
     // For each shape
     for (size_t i = 0; i < shapes.size(); i++) {
         printf("shape[%ld].name = %s\n", static_cast<long>(i), shapes[i].name.c_str());
-        printf("Size of shape[%ld].indices: %lu\n",
-               static_cast<long>(i),
+        printf("Size of shape[%ld].indices: %lu\n", static_cast<long>(i),
                static_cast<unsigned long>(shapes[i].mesh.indices.size()));
 
         size_t index_offset = 0;
 
         assert(shapes[i].mesh.num_face_vertices.size() == shapes[i].mesh.material_ids.size());
 
-        printf("shape[%ld].num_faces: %lu\n",
-               static_cast<long>(i),
+        printf("shape[%ld].num_faces: %lu\n", static_cast<long>(i),
                static_cast<unsigned long>(shapes[i].mesh.num_face_vertices.size()));
 
         // For each face
@@ -1273,12 +1255,8 @@ void PrintObjModelInfo(ObjModel* model) {
             // For each vertex in the face
             for (size_t v = 0; v < fnum; v++) {
                 tinyobj::index_t idx = shapes[i].mesh.indices[index_offset + v];
-                printf("    face[%ld].v[%ld].idx = %d/%d/%d\n",
-                       static_cast<long>(f),
-                       static_cast<long>(v),
-                       idx.vertex_index,
-                       idx.normal_index,
-                       idx.texcoord_index);
+                printf("    face[%ld].v[%ld].idx = %d/%d/%d\n", static_cast<long>(f), static_cast<long>(v),
+                       idx.vertex_index, idx.normal_index, idx.texcoord_index);
             }
 
             printf("  face[%ld].material_id = %d\n", static_cast<long>(f), shapes[i].mesh.material_ids[f]);
@@ -1286,8 +1264,8 @@ void PrintObjModelInfo(ObjModel* model) {
             index_offset += fnum;
         }
 
-        printf(
-            "shape[%ld].num_tags: %lu\n", static_cast<long>(i), static_cast<unsigned long>(shapes[i].mesh.tags.size()));
+        printf("shape[%ld].num_tags: %lu\n", static_cast<long>(i),
+               static_cast<unsigned long>(shapes[i].mesh.tags.size()));
         for (size_t t = 0; t < shapes[i].mesh.tags.size(); t++) {
             printf("  tag[%ld] = %s ", static_cast<long>(t), shapes[i].mesh.tags[t].name.c_str());
             printf(" ints: [");
@@ -1322,24 +1300,17 @@ void PrintObjModelInfo(ObjModel* model) {
 
     for (size_t i = 0; i < materials.size(); i++) {
         printf("material[%ld].name = %s\n", static_cast<long>(i), materials[i].name.c_str());
-        printf("  material.Ka = (%f, %f ,%f)\n",
-               static_cast<const double>(materials[i].ambient[0]),
-               static_cast<const double>(materials[i].ambient[1]),
-               static_cast<const double>(materials[i].ambient[2]));
-        printf("  material.Kd = (%f, %f ,%f)\n",
-               static_cast<const double>(materials[i].diffuse[0]),
-               static_cast<const double>(materials[i].diffuse[1]),
-               static_cast<const double>(materials[i].diffuse[2]));
-        printf("  material.Ks = (%f, %f ,%f)\n",
-               static_cast<const double>(materials[i].specular[0]),
+        printf("  material.Ka = (%f, %f ,%f)\n", static_cast<const double>(materials[i].ambient[0]),
+               static_cast<const double>(materials[i].ambient[1]), static_cast<const double>(materials[i].ambient[2]));
+        printf("  material.Kd = (%f, %f ,%f)\n", static_cast<const double>(materials[i].diffuse[0]),
+               static_cast<const double>(materials[i].diffuse[1]), static_cast<const double>(materials[i].diffuse[2]));
+        printf("  material.Ks = (%f, %f ,%f)\n", static_cast<const double>(materials[i].specular[0]),
                static_cast<const double>(materials[i].specular[1]),
                static_cast<const double>(materials[i].specular[2]));
-        printf("  material.Tr = (%f, %f ,%f)\n",
-               static_cast<const double>(materials[i].transmittance[0]),
+        printf("  material.Tr = (%f, %f ,%f)\n", static_cast<const double>(materials[i].transmittance[0]),
                static_cast<const double>(materials[i].transmittance[1]),
                static_cast<const double>(materials[i].transmittance[2]));
-        printf("  material.Ke = (%f, %f ,%f)\n",
-               static_cast<const double>(materials[i].emission[0]),
+        printf("  material.Ke = (%f, %f ,%f)\n", static_cast<const double>(materials[i].emission[0]),
                static_cast<const double>(materials[i].emission[1]),
                static_cast<const double>(materials[i].emission[2]));
         printf("  material.Ns = %f\n", static_cast<const double>(materials[i].shininess));

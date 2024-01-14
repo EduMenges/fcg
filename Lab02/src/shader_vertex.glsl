@@ -45,11 +45,11 @@ void main()
     //     gl_Position.w = model_coefficients.w;
     //
 
-    if ( render_as_black )
+    if (render_as_black)
     {
         // Ignoramos o atributo cor dos vértices, colocando a cor final como
         // preta. Utilizamos isto para renderizar as arestas pretas dos cubos.
-        cor_interpolada_pelo_rasterizador = vec4(0.0f,0.0f,0.0f,1.0f);
+        cor_interpolada_pelo_rasterizador = vec4(0.0f, 0.0f, 0.0f, 1.0f);
     }
     else
     {
