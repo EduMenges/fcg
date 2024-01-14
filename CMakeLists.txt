@@ -54,6 +54,8 @@ link_libraries(glad)
 add_subdirectory(text)
 link_libraries(text)
 
+add_subdirectory(stb)
+
 add_subdirectory(Lab01)
 add_subdirectory(Lab02)
 add_subdirectory(Lab03)

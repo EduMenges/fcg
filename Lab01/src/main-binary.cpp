@@ -179,7 +179,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
 
 // Variáveis que definem um programa de GPU (shaders). Veja função
 // LoadShadersFromFiles().
-GLuint g_GpuProgramID = 0;
+GLuint id_ = 0;
 
 int main() {
     // Inicializamos a biblioteca GLFW, utilizada para criar uma janela do
@@ -267,7 +267,7 @@ int main() {
 
         // Pedimos para a GPU utilizar o programa de GPU criado acima (contendo
         // os shaders de vértice e fragmentos).
-        glUseProgram(g_GpuProgramID);
+        glUseProgram(id_);
 
         auto seconds = static_cast<uint8_t>(glfwGetTime());
 
@@ -556,10 +556,10 @@ void LoadShadersFromFiles() {
     GLuint fragment_shader_id = LoadShader_Fragment("../../src/shader_fragment.glsl");
 
     // Deletamos o programa de GPU anterior, caso ele exista.
-    if (g_GpuProgramID != 0) glDeleteProgram(g_GpuProgramID);
+    if (id_ != 0) glDeleteProgram(id_);
 
     // Criamos um programa de GPU utilizando os shaders carregados acima.
-    g_GpuProgramID = CreateGpuProgram(vertex_shader_id, fragment_shader_id);
+    id_ = CreateGpuProgram(vertex_shader_id, fragment_shader_id);
 }
 
 // Esta função cria um programa de GPU, o qual contém obrigatoriamente um

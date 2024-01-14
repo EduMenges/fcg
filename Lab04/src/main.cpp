@@ -201,11 +201,11 @@ bool usePerspectiveProjection_ = true;
 bool g_ShowInfoText = true;
 
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
-GLuint g_GpuProgramID = 0;
-GLint  g_model_uniform;
-GLint  g_view_uniform;
-GLint  g_projection_uniform;
-GLint  g_object_id_uniform;
+GLuint id_ = 0;
+GLint  model_uniform_;
+GLint  view_uniform_;
+GLint  projection_uniform_;
+GLint  object_id_uniform_;
 
 #pragma clang diagnostic push
 #pragma ide diagnostic   ignored "modernize-macro-to-enum"
@@ -327,7 +327,7 @@ int                      main(int argc, char* argv[]) {
 
         // Pedimos para a GPU utilizar o programa de GPU criado acima (contendo
         // os shaders de vértice e fragmentos).
-        glUseProgram(g_GpuProgramID);
+        glUseProgram(id_);
 
         // Computamos a posição da câmera utilizando coordenadas esféricas.  As
         // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
@@ -384,8 +384,8 @@ int                      main(int argc, char* argv[]) {
         // Enviamos as matrizes "view" e "projection" para a placa de vídeo
         // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
         // efetivamente aplicadas em todos os pontos.
-        glUniformMatrix4fv(g_view_uniform, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(g_projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(view_uniform_, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(projection_uniform_, 1, GL_FALSE, glm::value_ptr(projection));
 
 #define SPHERE 0
 #define BUNNY  1
@@ -393,22 +393,22 @@ int                      main(int argc, char* argv[]) {
 
         // Desenhamos o modelo da esfera
         model = Matrix_Translate(-1.0f, 0.0f, 0.0f);
-        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(g_object_id_uniform, SPHERE);
+        glUniformMatrix4fv(model_uniform_, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(object_id_uniform_, SPHERE);
         DrawVirtualObject("the_sphere");
 
         // Desenhamos o modelo do coelho
         model = Matrix_Translate(1.0f, 0.0f, 0.0f) * Matrix_Rotate_Z(angleZ_) * Matrix_Rotate_Y(angleY_) *
                 Matrix_Rotate_X(angleX_);
-        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(g_object_id_uniform, BUNNY);
+        glUniformMatrix4fv(model_uniform_, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(object_id_uniform_, BUNNY);
         DrawVirtualObject("the_bunny");
 
         // Desenhamos o modelo do chão
         model = Matrix_Translate(0.0f, -1.0f, 0.0f) * Matrix_Rotate_Z(angleZ_) * Matrix_Rotate_Y(angleY_) *
                 Matrix_Rotate_X(angleX_) * Matrix_Scale(2.0f, 1.0f, 2.0f);
-        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(g_object_id_uniform, PLANE);
+        glUniformMatrix4fv(model_uniform_, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(object_id_uniform_, PLANE);
         DrawVirtualObject("the_plane");
 
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do
@@ -493,22 +493,22 @@ void LoadShadersFromFiles() {
     GLuint fragment_shader_id = LoadShader_Fragment("../../src/shader_fragment.glsl");
 
     // Deletamos o programa de GPU anterior, caso ele exista.
-    if (g_GpuProgramID != 0) {
-        glDeleteProgram(g_GpuProgramID);
+    if (id_ != 0) {
+        glDeleteProgram(id_);
     }
 
     // Criamos um programa de GPU utilizando os shaders carregados acima.
-    g_GpuProgramID = CreateGpuProgram(vertex_shader_id, fragment_shader_id);
+    id_ = CreateGpuProgram(vertex_shader_id, fragment_shader_id);
 
     // Buscamos o endereço das variáveis definidas dentro do Vertex Shader.
     // Utilizaremos estas variáveis para enviar dados para a placa de vídeo
     // (GPU)! Veja arquivo "shader_vertex.glsl" e "shader_fragment.glsl".
-    g_model_uniform = glGetUniformLocation(g_GpuProgramID, "model");  // Variável da matriz "model"
-    g_view_uniform  = glGetUniformLocation(g_GpuProgramID, "view");  // Variável da matriz "view" em shader_vertex.glsl
-    g_projection_uniform =
-        glGetUniformLocation(g_GpuProgramID, "projection");  // Variável da matriz "projection" em shader_vertex.glsl
-    g_object_id_uniform =
-        glGetUniformLocation(g_GpuProgramID, "object_id");  // Variável "object_id" em shader_fragment.glsl
+    model_uniform_  = glGetUniformLocation(id_, "model");  // Variável da matriz "model"
+    view_uniform_   = glGetUniformLocation(id_, "view");  // Variável da matriz "view" em shader_vertex.glsl
+    projection_uniform_ =
+        glGetUniformLocation(id_, "projection");  // Variável da matriz "projection" em shader_vertex.glsl
+    object_id_uniform_ =
+        glGetUniformLocation(id_, "object_id");  // Variável "object_id" em shader_fragment.glsl
 }
 
 // Função que pega a matriz M e guarda a mesma no topo da pilha

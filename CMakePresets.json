@@ -3,7 +3,6 @@
     "configurePresets": [
         {
             "name": "default",
-            "hidden": true,
             "generator": "Ninja",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE":"Debug"
@@ -13,7 +12,6 @@
         },
         {
             "name": "release",
-            "hidden": true,
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             },
@@ -58,6 +56,11 @@
         }
     ],
     "buildPresets": [
+        {
+            "name": "windows-debug",
+            "configurePreset": "default",
+            "displayName": "Windows Debug"
+        },
         {
             "name": "mingw-debug",
             "configurePreset": "mingw",
